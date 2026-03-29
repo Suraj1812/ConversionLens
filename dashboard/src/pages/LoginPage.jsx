@@ -15,6 +15,7 @@ export default function LoginPage() {
   const location = useLocation();
   const auth = useAuth();
   const toast = useToast();
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: ''
@@ -65,17 +66,27 @@ export default function LoginPage() {
 
         <label className="form-field">
           <span>Password</span>
-          <input
-            className="text-input"
-            type="password"
-            name="password"
-            autoComplete="off"
-            value={form.password}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, password: event.target.value }))
-            }
-            required
-          />
+          <div className="password-input-wrap">
+            <input
+              className="text-input password-input"
+              type={passwordVisible ? 'text' : 'password'}
+              name="password"
+              autoComplete="off"
+              value={form.password}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, password: event.target.value }))
+              }
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+              onClick={() => setPasswordVisible((current) => !current)}
+            >
+              {passwordVisible ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </label>
 
         <button className="primary-button" type="submit" disabled={submitting}>

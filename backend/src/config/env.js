@@ -15,7 +15,7 @@ const envSchema = z.object({
     .default('false')
     .transform((value) => value === 'true'),
   AUTH_COOKIE_NAME: z.string().min(1).default('shoplytics_session'),
-  AUTH_SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(7),
+  AUTH_SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(1),
   ADMIN_EMAIL: z.string().email().default('admin@shoplytics.com'),
   ADMIN_PASSWORD: z.string().min(8).default('Suraj@123'),
   ADMIN_NAME: z.string().trim().min(2).max(80).default('Shoplytics Admin'),

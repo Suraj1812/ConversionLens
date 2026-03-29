@@ -23,7 +23,7 @@ export function createAuthService(
     adminEmail: 'admin@shoplytics.com',
     adminName: 'Shoplytics Admin',
     adminPassword: 'Suraj@123',
-    authSessionDays: 7
+    authSessionDays: 1
   }
 ) {
   const adminEmail = normalizeEmail(options.adminEmail);

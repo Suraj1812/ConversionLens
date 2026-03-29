@@ -339,6 +339,35 @@ select {
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14);
 }
 
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 72px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  min-width: 52px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--panel-muted);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  background: #edf1f6;
+}
+
 .form-hint,
 .form-note {
   margin: 0;
