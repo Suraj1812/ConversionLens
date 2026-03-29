@@ -1,13 +1,7 @@
+import PageSkeleton from './PageSkeleton.jsx';
+
 export function LoadingState() {
-  return (
-    <div className="panel state-block">
-      <div className="state-card-copy">
-        <p className="eyebrow">Loading</p>
-        <h2>Fetching analytics data</h2>
-        <p className="empty-text">We&apos;re pulling the latest dashboard metrics right now.</p>
-      </div>
-    </div>
-  );
+  return <PageSkeleton />;
 }
 
 export function ErrorState({ message }) {

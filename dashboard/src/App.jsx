@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthProvider.jsx';
 import BrandLogo from './components/BrandLogo.jsx';
+import ScreenLoader from './components/ScreenLoader.jsx';
 import RangeSelector from './components/RangeSelector.jsx';
 import SeoManager from './components/SeoManager.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -22,6 +23,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const isAuthenticated = Boolean(auth.user);
+  const isAuthRoute = ['/login', '/register'].includes(location.pathname);
   const { data: readiness, loading: readinessLoading, error: readinessError } = useAnalyticsData(
     '/readyz',
     undefined,
@@ -48,6 +50,16 @@ export default function App() {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!auth.transition) {
+      return;
+    }
+
+    if ((isAuthenticated && !isAuthRoute) || (!isAuthenticated && isAuthRoute)) {
+      auth.clearTransition();
+    }
+  }, [auth, isAuthenticated, isAuthRoute]);
 
   useEffect(() => {
     if (!sidebarOpen) {
@@ -78,16 +90,13 @@ export default function App() {
 
   if (auth.loading) {
     return (
-      <div className="auth-screen">
+      <>
         <SeoManager />
-        <div className="panel state-block">
-          <div className="state-card-copy">
-            <p className="eyebrow">Loading</p>
-            <h2>Preparing your workspace</h2>
-            <p className="empty-text">Checking your session and loading the dashboard.</p>
-          </div>
-        </div>
-      </div>
+        <ScreenLoader
+          title="Preparing your workspace"
+          description="Checking your session and loading the dashboard."
+        />
+      </>
     );
   }
 
@@ -105,76 +114,93 @@ export default function App() {
             />
           </Routes>
         </Suspense>
+        {auth.transition ? (
+          <ScreenLoader
+            overlay
+            title={auth.transition.title}
+            description={auth.transition.description}
+          />
+        ) : null}
       </>
     );
   }
 
   return (
-    <div className="app-shell">
-      <SeoManager />
-      <button
-        type="button"
-        className={sidebarOpen ? 'sidebar-backdrop visible' : 'sidebar-backdrop'}
-        aria-label="Close navigation menu"
-        onClick={() => setSidebarOpen(false)}
-      />
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onLogout={handleLogout}
-        user={auth.user}
-      />
+    <>
+      <div className="app-shell">
+        <SeoManager />
+        <button
+          type="button"
+          className={sidebarOpen ? 'sidebar-backdrop visible' : 'sidebar-backdrop'}
+          aria-label="Close navigation menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onLogout={handleLogout}
+          user={auth.user}
+        />
 
-      <main className="content-shell">
-        <div className="mobile-topbar">
-          <BrandLogo />
-          <button
-            type="button"
-            className="menu-button"
-            aria-label="Open navigation menu"
-            aria-controls="primary-navigation"
-            aria-expanded={sidebarOpen}
-            onClick={() => setSidebarOpen(true)}
-          >
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M3 5H17" />
-              <path d="M3 10H17" />
-              <path d="M3 15H17" />
-            </svg>
-          </button>
-        </div>
+        <main className="content-shell">
+          <div className="mobile-topbar">
+            <BrandLogo />
+            <button
+              type="button"
+              className="menu-button"
+              aria-label="Open navigation menu"
+              aria-controls="primary-navigation"
+              aria-expanded={sidebarOpen}
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M3 5H17" />
+                <path d="M3 10H17" />
+                <path d="M3 15H17" />
+              </svg>
+            </button>
+          </div>
 
-        <header className="content-header">
-          <div className="page-intro">
-            <div className="title-row">
-              <h1>{pageMeta.pageTitle}</h1>
-              <StatusPill tone={statusTone}>{statusLabel}</StatusPill>
+          <header className="content-header">
+            <div className="page-intro">
+              <div className="title-row">
+                <h1>{pageMeta.pageTitle}</h1>
+                <StatusPill tone={statusTone}>{statusLabel}</StatusPill>
+              </div>
+              <p className="page-copy">{pageMeta.pageSubtitle}</p>
             </div>
-            <p className="page-copy">{pageMeta.pageSubtitle}</p>
-          </div>
 
-          <div className="content-actions">
-            {readiness?.databaseState ? (
-              <StatusPill tone={readiness?.status === 'ready' ? 'success' : 'neutral'}>
-                Database {readiness.databaseState}
-              </StatusPill>
-            ) : null}
-            <RangeSelector value={windowDays} onChange={setWindowDays} />
-          </div>
-        </header>
+            <div className="content-actions">
+              {readiness?.databaseState ? (
+                <StatusPill tone={readiness?.status === 'ready' ? 'success' : 'neutral'}>
+                  Database {readiness.databaseState}
+                </StatusPill>
+              ) : null}
+              <RangeSelector value={windowDays} onChange={setWindowDays} />
+            </div>
+          </header>
 
-        <Suspense fallback={<SuspenseFallback />}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/overview" replace />} />
-            <Route path="/login" element={<Navigate to="/overview" replace />} />
-            <Route path="/register" element={<Navigate to="/overview" replace />} />
-            <Route path="/overview" element={<OverviewPage windowDays={windowDays} />} />
-            <Route path="/funnel" element={<FunnelPage windowDays={windowDays} />} />
-            <Route path="/products" element={<ProductsPage windowDays={windowDays} />} />
-            <Route path="*" element={<Navigate to="/overview" replace />} />
-          </Routes>
-        </Suspense>
-      </main>
-    </div>
+          <Suspense fallback={<SuspenseFallback />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/overview" replace />} />
+              <Route path="/login" element={<Navigate to="/overview" replace />} />
+              <Route path="/register" element={<Navigate to="/overview" replace />} />
+              <Route path="/overview" element={<OverviewPage windowDays={windowDays} />} />
+              <Route path="/funnel" element={<FunnelPage windowDays={windowDays} />} />
+              <Route path="/products" element={<ProductsPage windowDays={windowDays} />} />
+              <Route path="*" element={<Navigate to="/overview" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+
+      {auth.transition ? (
+        <ScreenLoader
+          overlay
+          title={auth.transition.title}
+          description={auth.transition.description}
+        />
+      ) : null}
+    </>
   );
 }

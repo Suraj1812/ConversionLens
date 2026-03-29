@@ -1,31 +1,40 @@
-import { useState } from 'react';
+import { startTransition, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import AuthShell from '../components/AuthShell.jsx';
+import { useToast } from '../toast/ToastProvider.jsx';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const auth = useAuth();
+  const toast = useToast();
   const [form, setForm] = useState({
     name: '',
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
-    setError('');
 
     try {
-      await auth.register(form);
-      navigate('/overview', {
-        replace: true
+      const user = await auth.register(form);
+      toast.success({
+        title: 'Account created',
+        description: `Welcome${user?.name ? `, ${user.name.split(' ')[0]}` : ''}. Your workspace is ready.`
+      });
+      startTransition(() => {
+        navigate('/overview', {
+          replace: true
+        });
       });
     } catch (requestError) {
-      setError(requestError.message);
+      toast.error({
+        title: 'Could not create account',
+        description: requestError.message
+      });
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +93,6 @@ export default function RegisterPage() {
         </label>
 
         <p className="form-hint">Use at least 8 characters with uppercase, lowercase, and a number.</p>
-        {error ? <p className="form-error">{error}</p> : null}
 
         <button className="primary-button" type="submit" disabled={submitting}>
           {submitting ? 'Creating account...' : 'Create account'}

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { startTransition, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import AuthShell from '../components/AuthShell.jsx';
+import { useToast } from '../toast/ToastProvider.jsx';
 
 function getRedirectTarget(state) {
   return typeof state?.from === 'string' && !['/login', '/register'].includes(state.from)
@@ -13,25 +14,33 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const toast = useToast();
   const [form, setForm] = useState({
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
-    setError('');
 
     try {
-      await auth.login(form);
-      navigate(getRedirectTarget(location.state), {
-        replace: true
+      const user = await auth.login(form);
+      toast.success({
+        title: `Welcome back${user?.name ? `, ${user.name.split(' ')[0]}` : ''}`,
+        description: 'Your dashboard is ready.'
+      });
+      startTransition(() => {
+        navigate(getRedirectTarget(location.state), {
+          replace: true
+        });
       });
     } catch (requestError) {
-      setError(requestError.message);
+      toast.error({
+        title: 'Could not sign in',
+        description: requestError.message
+      });
     } finally {
       setSubmitting(false);
     }
@@ -75,8 +84,6 @@ export default function LoginPage() {
             required
           />
         </label>
-
-        {error ? <p className="form-error">{error}</p> : null}
 
         <button className="primary-button" type="submit" disabled={submitting}>
           {submitting ? 'Signing in...' : 'Sign in'}
