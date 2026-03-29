@@ -98,6 +98,44 @@ docker compose up --build
 
 The production dashboard will be available on `http://localhost:8080`.
 
+## Railway backend deployment
+
+The backend is ready for Railway with config-as-code in [backend/railway.json](/Users/surajsingh/Desktop/ConversionLens/backend/railway.json).
+
+Use this setup in Railway:
+
+1. Create a new service from the GitHub repo.
+2. Set the service root directory to `backend`.
+3. In service settings, set the Railway config file path to `/backend/railway.json`.
+4. Add a PostgreSQL database in the same Railway project.
+5. In backend service variables, set `DATABASE_URL` from the Postgres reference variable.
+6. Set `CORS_ORIGIN=https://conversionlens.vercel.app`.
+7. Set `TRUST_PROXY=true`.
+8. Keep the healthcheck path as `/readyz`.
+9. Generate a public Railway domain for the backend service.
+
+Recommended Railway variables:
+
+```env
+NODE_ENV=production
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+DATABASE_SSL=false
+DATABASE_MAX_POOL_SIZE=20
+CORS_ORIGIN=https://conversionlens.vercel.app
+TRUST_PROXY=true
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=500
+DEFAULT_WINDOW_DAYS=30
+```
+
+After Railway gives you the backend URL, update the Vercel frontend environment variable:
+
+```env
+VITE_API_BASE_URL=https://your-backend.up.railway.app
+```
+
+Then redeploy Vercel so the live dashboard points at Railway.
+
 ## Shopify setup
 
 Use [shopify-tracking-snippets.md](/Users/surajsingh/Desktop/ConversionLens/shopify-tracking-snippets.md) for the production Shopify integration flow.
