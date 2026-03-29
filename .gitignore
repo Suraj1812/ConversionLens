@@ -1,0 +1,7 @@
+backend/node_modules
+dashboard/node_modules
+backend/.env
+backend/.env.production
+dashboard/.env
+dist
+.DS_Store

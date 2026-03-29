@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: shoplytics
+      MONGO_INITDB_ROOT_PASSWORD: change-me
+      MONGO_INITDB_DATABASE: shoplytics
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo 'db.runCommand({ ping: 1 })' | mongosh mongodb://localhost:27017/admin --quiet"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/healthz').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  dashboard:
+    build:
+      context: ./dashboard
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - '8080:80'
+
+volumes:
+  mongo-data:
