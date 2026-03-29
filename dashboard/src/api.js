@@ -12,12 +12,24 @@ function buildUrl(path, query = {}) {
   return url;
 }
 
+function buildApiConfigurationError(url) {
+  return new Error(
+    `The dashboard is receiving HTML instead of JSON from ${url}. Set VITE_API_BASE_URL in Vercel to your Railway backend URL, for example https://your-backend.up.railway.app.`
+  );
+}
+
 export async function getJson(path, query) {
-  const response = await fetch(buildUrl(path, query), {
+  const url = buildUrl(path, query);
+  const response = await fetch(url, {
     headers: {
       Accept: 'application/json'
     }
   });
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('text/html')) {
+    throw buildApiConfigurationError(url);
+  }
 
   if (!response.ok) {
     const errorPayload = await response.json().catch(() => ({}));
