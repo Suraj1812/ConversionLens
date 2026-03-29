@@ -1,22 +1,12 @@
-import BrandLogo from './BrandLogo.jsx';
+import Spinner from './Spinner.jsx';
 
-export default function ScreenLoader({ description, overlay = false, title }) {
+export default function ScreenLoader({ overlay = false, title = 'Loading' }) {
   const className = overlay ? 'screen-loader screen-loader-overlay' : 'screen-loader';
 
   return (
     <div className={className} role="status" aria-live="polite">
-      <div className="screen-loader-card">
-        <BrandLogo />
-
-        <div className="screen-loader-copy">
-          <p className="eyebrow">Loading</p>
-          <h2>{title}</h2>
-          <p>{description}</p>
-        </div>
-
-        <div className="loader-track" aria-hidden="true">
-          <span />
-        </div>
+      <div className="screen-loader-minimal">
+        <Spinner label={title} size="lg" />
       </div>
     </div>
   );
