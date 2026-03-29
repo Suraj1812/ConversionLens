@@ -1,6 +1,6 @@
 # Shoplytics
 
-Shoplytics is a production-ready Shopify analytics project focused on real user behavior instead of store operations. It collects product views, add-to-cart actions, and purchases, stores them in PostgreSQL, and surfaces funnel and product insights in a clean React dashboard.
+Shoplytics is a production-ready Shopify analytics project focused on real user behavior instead of store operations. It collects product views, add-to-cart actions, and purchases, stores them in PostgreSQL, protects dashboard access with secure session authentication, and surfaces funnel and product insights in a clean React dashboard.
 
 ## Project structure
 
@@ -15,6 +15,7 @@ compose.yaml
 ## What is production-ready in this repo
 
 - Hardened Express API with `helmet`, `compression`, rate limiting, request IDs, readiness checks, and structured error responses
+- Secure register, login, logout, and session-based dashboard access using httpOnly cookies
 - Idempotent event ingestion with optional `eventId` deduplication
 - Analytics filtered by time window
 - Dockerfiles for backend and dashboard
@@ -46,6 +47,10 @@ The backend runs on `http://localhost:4000`.
 ### Backend API
 
 - `POST /track-event`
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/logout`
+- `GET /auth/me`
 - `GET /analytics/overview`
 - `GET /analytics/funnel`
 - `GET /analytics/products`
@@ -85,6 +90,30 @@ npm run dev
 The dashboard runs on `http://localhost:5173`.
 
 The Vite dev server proxies `/api` to the backend, so the frontend and production nginx config both use the same API path.
+
+## Authentication
+
+- Registration and login create a secure server-side session
+- The backend stores only a hashed session token and sends the real token as an `httpOnly` cookie
+- Dashboard analytics endpoints are protected and require an authenticated session
+- `POST /track-event`, `GET /healthz`, and `GET /readyz` remain public for Shopify ingestion and platform health checks
+
+### Auth payloads
+
+```json
+{
+  "name": "Suraj Singh",
+  "email": "suraj@example.com",
+  "password": "Password1"
+}
+```
+
+```json
+{
+  "email": "suraj@example.com",
+  "password": "Password1"
+}
+```
 
 ## Production deployment with Docker
 
@@ -128,6 +157,8 @@ DATABASE_SSL=false
 DATABASE_MAX_POOL_SIZE=20
 CORS_ORIGIN=https://conversionlens.vercel.app
 TRUST_PROXY=true
+AUTH_COOKIE_NAME=shoplytics_session
+AUTH_SESSION_DAYS=7
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=500
 DEFAULT_WINDOW_DAYS=30
@@ -140,6 +171,12 @@ VITE_API_BASE_URL=https://your-backend.up.railway.app
 ```
 
 Then redeploy Vercel so the live dashboard points at Railway.
+
+Important note for auth:
+
+- Production auth uses secure cross-site cookies between `vercel.app` and `railway.app`
+- `CORS_ORIGIN` must exactly match your deployed frontend origin
+- The frontend must keep calling the backend with `credentials: include`, which is already implemented in this repo
 
 ## Shopify setup
 
@@ -159,6 +196,7 @@ You will need:
 
 ## What the dashboard shows
 
+- Secure auth: register, login, logout, and protected dashboard access
 - Overview: total users, total tracked events, conversion rate
 - Funnel: sequential view to cart to purchase progression
 - Products: top viewed, top purchased, best converting, and most abandoned products

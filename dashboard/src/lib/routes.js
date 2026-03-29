@@ -1,4 +1,18 @@
 export const routeMeta = {
+  '/login': {
+    path: '/login',
+    pageTitle: 'Sign in',
+    pageSubtitle: 'Access your Shopify analytics workspace.',
+    seoTitle: 'Sign In',
+    seoDescription: 'Secure sign in for the Shoplytics Shopify analytics dashboard.'
+  },
+  '/register': {
+    path: '/register',
+    pageTitle: 'Create account',
+    pageSubtitle: 'Create a secure account for your analytics workspace.',
+    seoTitle: 'Create Account',
+    seoDescription: 'Create a secure Shoplytics account to access Shopify analytics.'
+  },
   '/overview': {
     path: '/overview',
     navLabel: 'Overview',
@@ -28,7 +42,11 @@ export const routeMeta = {
   }
 };
 
-export const navigationItems = Object.values(routeMeta);
+export const navigationItems = [
+  routeMeta['/overview'],
+  routeMeta['/funnel'],
+  routeMeta['/products']
+];
 
 export function getRouteMeta(pathname) {
   return routeMeta[pathname] ?? routeMeta['/overview'];

@@ -5,7 +5,10 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { analyticsService } from './services/analyticsService.js';
+import { createRequireAuth } from './middleware/requireAuth.js';
+import createAuthRouter from './routes/auth.js';
 import { eventService } from './services/eventService.js';
+import { createAuthService } from './services/authService.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFound.js';
 import { requestId } from './middleware/requestId.js';
@@ -18,27 +21,38 @@ const defaultConfig = {
   rateLimitMaxRequests: 250,
   nodeEnv: 'development',
   trustProxy: false,
-  defaultWindowDays: 30
+  defaultWindowDays: 30,
+  authCookieName: 'shoplytics_session',
+  authSessionDays: 7
 };
 
 function buildCorsOrigin(origins) {
-  if (!origins?.length) {
-    return true;
-  }
+  const allowedOrigins = new Set(origins || []);
 
-  return origins;
+  return (origin, callback) => {
+    if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  };
 }
 
 export function createApp({
   config = defaultConfig,
   analytics = analyticsService,
   events = eventService,
+  auth = createAuthService(undefined, {
+    authSessionDays: config.authSessionDays
+  }),
   getReadiness = async () => ({
     ready: false,
     state: 'disconnected'
   })
 } = {}) {
   const app = express();
+  const requireAuth = createRequireAuth(auth, config);
 
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy);
@@ -52,7 +66,8 @@ export function createApp({
   app.use(compression());
   app.use(
     cors({
-      origin: buildCorsOrigin(config.corsOrigins)
+      origin: buildCorsOrigin(config.corsOrigins),
+      credentials: true
     })
   );
   app.use(
@@ -93,8 +108,10 @@ export function createApp({
   });
 
   app.use(createEventsRouter(events));
+  app.use('/auth', createAuthRouter(auth, config));
   app.use(
     '/analytics',
+    requireAuth,
     createAnalyticsRouter(analytics, {
       defaultWindowDays: config.defaultWindowDays
     })

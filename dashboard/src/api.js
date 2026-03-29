@@ -13,17 +13,34 @@ function buildUrl(path, query = {}) {
 }
 
 function buildApiConfigurationError(url) {
-  return new Error(
+  const error = new Error(
     `The dashboard is receiving HTML instead of JSON from ${url}. Set VITE_API_BASE_URL in Vercel to your Railway backend URL, for example https://your-backend.up.railway.app.`
   );
+  error.statusCode = 500;
+  return error;
 }
 
-export async function getJson(path, query) {
+function createRequestError(message, statusCode, details) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.details = details;
+  return error;
+}
+
+export async function requestJson(
+  path,
+  { body, headers = {}, method = 'GET', query, suppressUnauthorizedEvent = false } = {}
+) {
   const url = buildUrl(path, query);
   const response = await fetch(url, {
+    method,
+    credentials: 'include',
     headers: {
-      Accept: 'application/json'
-    }
+      Accept: 'application/json',
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...headers
+    },
+    ...(body ? { body: JSON.stringify(body) } : {})
   });
   const contentType = response.headers.get('content-type') || '';
 
@@ -33,8 +50,32 @@ export async function getJson(path, query) {
 
   if (!response.ok) {
     const errorPayload = await response.json().catch(() => ({}));
-    throw new Error(errorPayload.message || `Request failed with status ${response.status}`);
+
+    if (response.status === 401 && !suppressUnauthorizedEvent && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('shoplytics:unauthorized'));
+    }
+
+    throw createRequestError(
+      errorPayload.message || `Request failed with status ${response.status}`,
+      response.status,
+      errorPayload.details
+    );
   }
 
   return response.json();
+}
+
+export function getJson(path, query, options = {}) {
+  return requestJson(path, {
+    ...options,
+    query
+  });
+}
+
+export function postJson(path, body, options = {}) {
+  return requestJson(path, {
+    ...options,
+    method: 'POST',
+    body
+  });
 }

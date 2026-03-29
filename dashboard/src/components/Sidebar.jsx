@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import BrandLogo from './BrandLogo.jsx';
 import { navigationItems } from '../lib/routes.js';
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, onLogout, user }) {
   return (
     <aside id="primary-navigation" className={isOpen ? 'sidebar open' : 'sidebar'}>
       <div className="sidebar-header">
@@ -27,6 +27,16 @@ export default function Sidebar({ isOpen, onClose }) {
           </NavLink>
         ))}
       </nav>
+
+      <div className="sidebar-account">
+        <div className="sidebar-user">
+          <strong>{user?.name || 'Shoplytics user'}</strong>
+          <span>{user?.email || ''}</span>
+        </div>
+        <button type="button" className="logout-button" onClick={onLogout}>
+          Log out
+        </button>
+      </div>
     </aside>
   );
 }

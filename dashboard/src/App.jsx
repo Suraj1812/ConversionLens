@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { useAuth } from './auth/AuthProvider.jsx';
 import BrandLogo from './components/BrandLogo.jsx';
 import RangeSelector from './components/RangeSelector.jsx';
 import SeoManager from './components/SeoManager.jsx';
@@ -12,13 +13,18 @@ import { getRouteMeta } from './lib/routes.js';
 const OverviewPage = lazy(() => import('./pages/OverviewPage.jsx'));
 const FunnelPage = lazy(() => import('./pages/FunnelPage.jsx'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 
 export default function App() {
+  const auth = useAuth();
   const [windowDays, setWindowDays] = useState(30);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const isAuthenticated = Boolean(auth.user);
   const { data: readiness, loading: readinessLoading, error: readinessError } = useAnalyticsData(
-    '/readyz'
+    '/readyz',
+    undefined
   );
   const pageMeta = getRouteMeta(location.pathname);
   const statusTone = readinessError
@@ -62,6 +68,44 @@ export default function App() {
     };
   }, [sidebarOpen]);
 
+  async function handleLogout() {
+    setSidebarOpen(false);
+    await auth.logout();
+  }
+
+  if (auth.loading) {
+    return (
+      <div className="auth-screen">
+        <SeoManager />
+        <div className="panel state-block">
+          <div className="state-card-copy">
+            <p className="eyebrow">Loading</p>
+            <h2>Preparing your workspace</h2>
+            <p className="empty-text">Checking your session and loading the dashboard.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <SeoManager />
+        <Suspense fallback={<SuspenseFallback />}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="*"
+              element={<Navigate to="/login" replace state={{ from: location.pathname }} />}
+            />
+          </Routes>
+        </Suspense>
+      </>
+    );
+  }
+
   return (
     <div className="app-shell">
       <SeoManager />
@@ -71,7 +115,12 @@ export default function App() {
         aria-label="Close navigation menu"
         onClick={() => setSidebarOpen(false)}
       />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onLogout={handleLogout}
+        user={auth.user}
+      />
 
       <main className="content-shell">
         <div className="mobile-topbar">
@@ -114,9 +163,12 @@ export default function App() {
         <Suspense fallback={<SuspenseFallback />}>
           <Routes>
             <Route path="/" element={<Navigate to="/overview" replace />} />
+            <Route path="/login" element={<Navigate to="/overview" replace />} />
+            <Route path="/register" element={<Navigate to="/overview" replace />} />
             <Route path="/overview" element={<OverviewPage windowDays={windowDays} />} />
             <Route path="/funnel" element={<FunnelPage windowDays={windowDays} />} />
             <Route path="/products" element={<ProductsPage windowDays={windowDays} />} />
+            <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
         </Suspense>
       </main>

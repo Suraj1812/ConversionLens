@@ -28,6 +28,31 @@ export async function initializeDatabase() {
   const db = getPool();
 
   await db.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGSERIAL PRIMARY KEY,
+      name VARCHAR(80) NOT NULL,
+      email VARCHAR(320) NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      session_token_hash CHAR(64) NOT NULL UNIQUE,
+      ip_address TEXT,
+      user_agent TEXT,
+      expires_at TIMESTAMPTZ NOT NULL,
+      revoked_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id
+      ON user_sessions (user_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at
+      ON user_sessions (expires_at);
+
     CREATE TABLE IF NOT EXISTS events (
       id BIGSERIAL PRIMARY KEY,
       event_id VARCHAR(128) UNIQUE,
