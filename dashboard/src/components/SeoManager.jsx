@@ -1,29 +1,12 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getRouteMeta } from '../lib/routes.js';
 
 const SITE_NAME = 'Shoplytics';
 const DEFAULT_DESCRIPTION =
   'Shoplytics is a Shopify analytics dashboard for funnel tracking, conversion analysis, and product performance insights.';
 const SITE_URL = 'https://conversionlens.vercel.app';
 const OG_IMAGE_URL = `${SITE_URL}/og-image.svg`;
-
-const routeMeta = {
-  '/overview': {
-    title: 'Overview Dashboard',
-    description:
-      'Monitor Shopify traffic, event volume, and conversion rate from a clean eCommerce analytics dashboard.'
-  },
-  '/funnel': {
-    title: 'Funnel Analysis',
-    description:
-      'Analyze how users move from product view to cart to purchase across the Shopify funnel.'
-  },
-  '/products': {
-    title: 'Product Analytics',
-    description:
-      'Track top viewed products, best converters, and abandoned cart leaders in your Shopify store.'
-  }
-};
 
 function upsertMeta(name, content, attribute = 'name') {
   let tag = document.head.querySelector(`meta[${attribute}="${name}"]`);
@@ -51,9 +34,10 @@ function upsertLink(rel, href) {
 
 export default function SeoManager() {
   const location = useLocation();
-  const meta = routeMeta[location.pathname] ?? {
-    title: 'Shopify Analytics Dashboard',
-    description: DEFAULT_DESCRIPTION
+  const route = getRouteMeta(location.pathname);
+  const meta = {
+    title: route.seoTitle || 'Shopify Analytics Dashboard',
+    description: route.seoDescription || DEFAULT_DESCRIPTION
   };
   const canonicalUrl = `${SITE_URL}${location.pathname === '/' ? '/overview' : location.pathname}`;
   const title = `${meta.title} | ${SITE_NAME}`;

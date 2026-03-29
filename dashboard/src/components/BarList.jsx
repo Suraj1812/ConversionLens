@@ -1,12 +1,10 @@
-function formatValue(value) {
-  return new Intl.NumberFormat().format(value);
-}
+import { formatNumber } from '../lib/formatters.js';
 
 export default function BarList({
   items,
   valueKey = 'count',
   emptyMessage = 'No data yet.',
-  valueFormatter = formatValue
+  valueFormatter = formatNumber
 }) {
   if (!items?.length) {
     return <p className="empty-text">{emptyMessage}</p>;
@@ -20,9 +18,10 @@ export default function BarList({
         const itemValue = item[valueKey];
         const width = `${Math.max((itemValue / maxValue) * 100, 6)}%`;
         const label = item.productTitle || item.label || item.productId || item.key;
+        const key = item.productId || item.key || item.label || label;
 
         return (
-          <div className="bar-row" key={`${label}-${itemValue}`}>
+          <div className="bar-row" key={`${key}-${itemValue}`}>
             <div className="bar-row-header">
               <span>{label}</span>
               <strong>{valueFormatter(itemValue)}</strong>
