@@ -258,21 +258,15 @@ select {
   line-height: 1.6;
 }
 
-.loader-track {
-  width: 100%;
-  height: 8px;
+.loader-spinner {
+  width: 40px;
+  height: 40px;
+  justify-self: center;
+  border: 3px solid rgba(15, 23, 42, 0.12);
+  border-top-color: #0f172a;
+  border-right-color: #f97316;
   border-radius: 999px;
-  background: #edf1f6;
-  overflow: hidden;
-}
-
-.loader-track span {
-  display: block;
-  width: 38%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #f97316 0%, #0f172a 100%);
-  animation: loader-slide 1.1s ease-in-out infinite;
+  animation: loader-spin 0.9s linear infinite;
 }
 
 .auth-card {
@@ -1022,13 +1016,13 @@ select {
   }
 }
 
-@keyframes loader-slide {
+@keyframes loader-spin {
   0% {
-    transform: translateX(-110%);
+    transform: rotate(0deg);
   }
 
   100% {
-    transform: translateX(280%);
+    transform: rotate(360deg);
   }
 }
 

@@ -14,9 +14,7 @@ export default function ScreenLoader({ description, overlay = false, title }) {
           <p>{description}</p>
         </div>
 
-        <div className="loader-track" aria-hidden="true">
-          <span />
-        </div>
+        <div className="loader-spinner" aria-hidden="true" />
       </div>
     </div>
   );
