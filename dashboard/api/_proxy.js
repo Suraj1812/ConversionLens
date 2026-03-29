@@ -1,10 +1,4 @@
-const DEFAULT_BACKEND_ORIGIN = 'https://conversionlens-production.up.railway.app';
-
-function buildTargetUrl(requestUrl) {
-  const incomingUrl = new URL(requestUrl);
-  const proxyPath = incomingUrl.pathname.replace(/^\/api/, '') || '/';
-  return new URL(`${proxyPath}${incomingUrl.search}`, process.env.RAILWAY_BACKEND_URL || DEFAULT_BACKEND_ORIGIN);
-}
+const DEFAULT_BACKEND_ORIGIN = process.env.RAILWAY_BACKEND_URL || 'https://conversionlens-production.up.railway.app';
 
 function buildUpstreamHeaders(requestHeaders) {
   const headers = new Headers(requestHeaders);
@@ -19,8 +13,9 @@ function buildUpstreamHeaders(requestHeaders) {
   return headers;
 }
 
-async function proxyRequest(request) {
-  const targetUrl = buildTargetUrl(request.url);
+export async function proxyToBackend(request, upstreamPath) {
+  const incomingUrl = new URL(request.url);
+  const targetUrl = new URL(`${upstreamPath}${incomingUrl.search}`, DEFAULT_BACKEND_ORIGIN);
   const body =
     request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.arrayBuffer();
 
@@ -43,7 +38,3 @@ async function proxyRequest(request) {
     headers: responseHeaders
   });
 }
-
-export default {
-  fetch: proxyRequest
-};

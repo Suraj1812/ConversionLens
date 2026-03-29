@@ -166,7 +166,7 @@ RATE_LIMIT_MAX_REQUESTS=500
 DEFAULT_WINDOW_DAYS=30
 ```
 
-After Railway gives you the backend URL, point the frontend's same-origin `/api/*` proxy to that backend. This repo includes a Vercel function proxy in [dashboard/api/[...path].js](/Users/surajsingh/Desktop/ConversionLens/dashboard/api/[...path].js) and defaults it to `https://conversionlens-production.up.railway.app`.
+After Railway gives you the backend URL, point the frontend's same-origin `/api/*` proxy to that backend. This repo includes Vercel function proxies under [dashboard/api](/Users/surajsingh/Desktop/ConversionLens/dashboard/api) and defaults them to `https://conversionlens-production.up.railway.app`.
 
 If your Railway URL changes, set this Vercel environment variable:
 

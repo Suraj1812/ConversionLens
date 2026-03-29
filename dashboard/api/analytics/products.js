@@ -1,0 +1,7 @@
+import { proxyToBackend } from '../_proxy.js';
+
+export default {
+  fetch(request) {
+    return proxyToBackend(request, '/analytics/products');
+  }
+};
