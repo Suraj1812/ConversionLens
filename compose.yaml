@@ -1,18 +1,18 @@
 services:
-  mongo:
-    image: mongo:7.0
+  postgres:
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: shoplytics
-      MONGO_INITDB_ROOT_PASSWORD: change-me
-      MONGO_INITDB_DATABASE: shoplytics
+      POSTGRES_USER: shoplytics
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: shoplytics
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "echo 'db.runCommand({ ping: 1 })' | mongosh mongodb://localhost:27017/admin --quiet"
+          "pg_isready -U shoplytics -d shoplytics"
         ]
       interval: 10s
       timeout: 5s
@@ -25,7 +25,7 @@ services:
     env_file:
       - ./backend/.env.production
     depends_on:
-      mongo:
+      postgres:
         condition: service_healthy
     healthcheck:
       test:
@@ -50,4 +50,4 @@ services:
       - '8080:80'
 
 volumes:
-  mongo-data:
+  postgres-data:

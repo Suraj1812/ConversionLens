@@ -47,7 +47,7 @@ describe('calculateFunnelFromEvents', () => {
 
 describe('createAnalyticsService', () => {
   it('returns product analytics with conversion and abandonment details', async () => {
-    const aggregate = vi.fn().mockResolvedValue([
+    const getProductRollups = vi.fn().mockResolvedValue([
       {
         productId: 'p1',
         eventType: 'view',
@@ -72,12 +72,12 @@ describe('createAnalyticsService', () => {
     ]);
 
     const analyticsService = createAnalyticsService({
-      aggregate
+      getProductRollups
     });
 
     const result = await analyticsService.getProductStats({ windowDays: 30, limit: 5 });
 
-    expect(aggregate).toHaveBeenCalled();
+    expect(getProductRollups).toHaveBeenCalled();
     expect(result.topViewed[0].productId).toBe('p1');
     expect(result.bestConverting[0].conversionRate).toBe(25);
     expect(result.mostAbandoned[0].abandonmentCount).toBe(2);
@@ -86,19 +86,16 @@ describe('createAnalyticsService', () => {
 
 describe('createEventService', () => {
   it('deduplicates duplicate event IDs', async () => {
-    const EventModel = {
-      create: vi.fn().mockRejectedValue({
-        name: 'MongoServerError',
-        code: 11000
+    const repository = {
+      insertEvent: vi.fn().mockRejectedValue({
+        code: '23505'
       }),
-      findOne: vi.fn().mockReturnValue({
-        lean: vi.fn().mockResolvedValue({
-          eventId: 'evt_duplicate_123'
-        })
+      findByEventId: vi.fn().mockResolvedValue({
+        eventId: 'evt_duplicate_123'
       })
     };
 
-    const eventService = createEventService(EventModel);
+    const eventService = createEventService(repository);
     const result = await eventService.trackEvent({
       eventId: 'evt_duplicate_123',
       eventType: 'purchase',

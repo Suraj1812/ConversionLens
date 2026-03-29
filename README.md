@@ -1,6 +1,6 @@
 # Shoplytics
 
-Shoplytics is a production-ready Shopify analytics project focused on real user behavior instead of store operations. It collects product views, add-to-cart actions, and purchases, stores them in MongoDB, and surfaces funnel and product insights in a clean React dashboard.
+Shoplytics is a production-ready Shopify analytics project focused on real user behavior instead of store operations. It collects product views, add-to-cart actions, and purchases, stores them in PostgreSQL, and surfaces funnel and product insights in a clean React dashboard.
 
 ## Project structure
 
@@ -18,7 +18,7 @@ compose.yaml
 - Idempotent event ingestion with optional `eventId` deduplication
 - Analytics filtered by time window
 - Dockerfiles for backend and dashboard
-- `compose.yaml` for end-to-end local deployment with MongoDB
+- `compose.yaml` for end-to-end local deployment with PostgreSQL
 - GitHub Actions CI for backend tests and dashboard builds
 - Shopify custom pixel integration for production-safe event delivery
 
@@ -28,7 +28,7 @@ compose.yaml
 
 1. Open [backend](/Users/surajsingh/Desktop/ConversionLens/backend).
 2. Copy `.env.example` to `.env`.
-3. Add your MongoDB connection string.
+3. Add your PostgreSQL connection string.
 4. Install dependencies:
 
 ```bash
@@ -89,7 +89,7 @@ The Vite dev server proxies `/api` to the backend, so the frontend and productio
 ## Production deployment with Docker
 
 1. Copy [backend/.env.production.example](/Users/surajsingh/Desktop/ConversionLens/backend/.env.production.example) to `backend/.env.production`.
-2. Set a real production MongoDB URI and trusted frontend origin.
+2. Set a real production PostgreSQL connection string and trusted frontend origin.
 3. Start the stack:
 
 ```bash

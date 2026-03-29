@@ -3,7 +3,6 @@ import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import mongoose from 'mongoose';
 import morgan from 'morgan';
 import { analyticsService } from './services/analyticsService.js';
 import { eventService } from './services/eventService.js';
@@ -33,7 +32,11 @@ function buildCorsOrigin(origins) {
 export function createApp({
   config = defaultConfig,
   analytics = analyticsService,
-  events = eventService
+  events = eventService,
+  getReadiness = async () => ({
+    ready: false,
+    state: 'disconnected'
+  })
 } = {}) {
   const app = express();
 
@@ -74,14 +77,19 @@ export function createApp({
     });
   });
 
-  app.get('/readyz', (req, res) => {
-    const isReady = mongoose.connection.readyState === 1;
+  app.get('/readyz', async (req, res, next) => {
+    try {
+      const readiness = await getReadiness();
 
-    res.status(isReady ? 200 : 503).json({
-      status: isReady ? 'ready' : 'not_ready',
-      mongoState: mongoose.connection.readyState,
-      requestId: req.id
-    });
+      res.status(readiness.ready ? 200 : 503).json({
+        status: readiness.ready ? 'ready' : 'not_ready',
+        databaseState: readiness.state,
+        detail: readiness.detail,
+        requestId: req.id
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.use(createEventsRouter(events));

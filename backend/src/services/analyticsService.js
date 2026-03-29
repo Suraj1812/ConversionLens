@@ -1,4 +1,4 @@
-import Event from '../models/Event.js';
+import { eventRepository } from '../repositories/eventRepository.js';
 
 function buildTimeFilter(windowDays = 30) {
   const rangeEnd = new Date();
@@ -102,36 +102,23 @@ function sortDescending(items, primaryKey, secondaryKey) {
   });
 }
 
-export function createAnalyticsService(EventModel = Event) {
+export function createAnalyticsService(repository = eventRepository) {
   return {
     async getOverviewStats({ windowDays = 30 } = {}) {
-      const { filter, rangeStart, rangeEnd } = buildTimeFilter(windowDays);
-      const [
-        totalEvents,
-        totalUsers,
-        totalViews,
-        totalAddToCarts,
-        totalPurchases,
-        viewSessions,
-        purchaseSessions
-      ] = await Promise.all([
-        EventModel.countDocuments(filter),
-        EventModel.distinct('sessionId', filter),
-        EventModel.countDocuments({ ...filter, eventType: 'view' }),
-        EventModel.countDocuments({ ...filter, eventType: 'add_to_cart' }),
-        EventModel.countDocuments({ ...filter, eventType: 'purchase' }),
-        EventModel.distinct('sessionId', { ...filter, eventType: 'view' }),
-        EventModel.distinct('sessionId', { ...filter, eventType: 'purchase' })
-      ]);
+      const { rangeStart, rangeEnd } = buildTimeFilter(windowDays);
+      const overview = await repository.getOverviewRollup({
+        rangeStart,
+        rangeEnd
+      });
 
       return {
-        totalEvents,
-        totalUsers: totalUsers.length,
-        conversionRate: formatPercentage(purchaseSessions.length, viewSessions.length),
+        totalEvents: overview.totalEvents,
+        totalUsers: overview.totalUsers,
+        conversionRate: formatPercentage(overview.purchaseSessions, overview.viewSessions),
         totalsByEvent: {
-          view: totalViews,
-          add_to_cart: totalAddToCarts,
-          purchase: totalPurchases
+          view: overview.viewCount,
+          add_to_cart: overview.cartCount,
+          purchase: overview.purchaseCount
         },
         range: {
           windowDays,
@@ -142,21 +129,11 @@ export function createAnalyticsService(EventModel = Event) {
     },
 
     async getFunnelStats({ windowDays = 30 } = {}) {
-      const { filter, rangeStart, rangeEnd } = buildTimeFilter(windowDays);
-      const events = await EventModel.find(
-        {
-          ...filter,
-          eventType: { $in: ['view', 'add_to_cart', 'purchase'] }
-        },
-        {
-          _id: 0,
-          sessionId: 1,
-          eventType: 1,
-          timestamp: 1
-        }
-      )
-        .sort({ sessionId: 1, timestamp: 1 })
-        .lean();
+      const { rangeStart, rangeEnd } = buildTimeFilter(windowDays);
+      const events = await repository.getFunnelEvents({
+        rangeStart,
+        rangeEnd
+      });
 
       return {
         ...calculateFunnelFromEvents(events),
@@ -169,36 +146,11 @@ export function createAnalyticsService(EventModel = Event) {
     },
 
     async getProductStats({ windowDays = 30, limit = 5 } = {}) {
-      const { filter, rangeStart, rangeEnd } = buildTimeFilter(windowDays);
-      const rows = await EventModel.aggregate([
-        {
-          $match: {
-            ...filter,
-            eventType: { $in: ['view', 'add_to_cart', 'purchase'] }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$productId',
-              eventType: '$eventType'
-            },
-            productTitle: { $last: '$productTitle' },
-            totalCount: { $sum: 1 },
-            sessionIds: { $addToSet: '$sessionId' }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            productId: '$_id.productId',
-            eventType: '$_id.eventType',
-            productTitle: { $ifNull: ['$productTitle', '$_id.productId'] },
-            totalCount: 1,
-            uniqueSessions: { $size: '$sessionIds' }
-          }
-        }
-      ]);
+      const { rangeStart, rangeEnd } = buildTimeFilter(windowDays);
+      const rows = await repository.getProductRollups({
+        rangeStart,
+        rangeEnd
+      });
 
       const byProduct = new Map();
 

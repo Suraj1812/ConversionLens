@@ -66,7 +66,7 @@ Purchase events are sent once per purchased line item and use an indexed event I
 1. Open a product page in the storefront
 2. Add the product to cart
 3. Complete a test checkout
-4. Confirm new documents appear in MongoDB
+4. Confirm new event rows appear in PostgreSQL
 5. Open the Shoplytics dashboard and verify:
    - overview counts increase
    - funnel counts move from view to cart to purchase

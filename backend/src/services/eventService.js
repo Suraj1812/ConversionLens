@@ -1,10 +1,10 @@
-import Event from '../models/Event.js';
+import { eventRepository } from '../repositories/eventRepository.js';
 
 function isDuplicateKeyError(error) {
-  return error?.name === 'MongoServerError' && error?.code === 11000;
+  return error?.code === '23505';
 }
 
-export function createEventService(EventModel = Event) {
+export function createEventService(repository = eventRepository) {
   return {
     async trackEvent(input) {
       const payload = {
@@ -13,7 +13,7 @@ export function createEventService(EventModel = Event) {
       };
 
       try {
-        const event = await EventModel.create(payload);
+        const event = await repository.insertEvent(payload);
 
         return {
           created: true,
@@ -25,7 +25,7 @@ export function createEventService(EventModel = Event) {
           throw error;
         }
 
-        const existingEvent = await EventModel.findOne({ eventId: payload.eventId }).lean();
+        const existingEvent = await repository.findByEventId(payload.eventId);
 
         return {
           created: false,

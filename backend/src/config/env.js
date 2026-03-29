@@ -3,7 +3,12 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
-  MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_SSL: z
+    .string()
+    .default('false')
+    .transform((value) => value === 'true'),
+  DATABASE_MAX_POOL_SIZE: z.coerce.number().int().positive().default(10),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   TRUST_PROXY: z
     .string()
@@ -25,7 +30,9 @@ export function loadEnv() {
   return {
     nodeEnv: parsed.data.NODE_ENV,
     port: parsed.data.PORT,
-    mongodbUri: parsed.data.MONGODB_URI,
+    databaseUrl: parsed.data.DATABASE_URL,
+    databaseSsl: parsed.data.DATABASE_SSL,
+    databaseMaxPoolSize: parsed.data.DATABASE_MAX_POOL_SIZE,
     corsOrigins: parsed.data.CORS_ORIGIN.split(',')
       .map((value) => value.trim())
       .filter(Boolean),
