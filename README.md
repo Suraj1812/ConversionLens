@@ -166,19 +166,13 @@ RATE_LIMIT_MAX_REQUESTS=500
 DEFAULT_WINDOW_DAYS=30
 ```
 
-After Railway gives you the backend URL, update the Vercel frontend environment variable:
-
-```env
-VITE_API_BASE_URL=https://your-backend.up.railway.app
-```
-
-Then redeploy Vercel so the live dashboard points at Railway.
+After Railway gives you the backend URL, point Vercel `/api/*` rewrites at that backend so the dashboard can use same-origin API requests and first-party cookies. This repo already proxies production API traffic through [dashboard/vercel.json](/Users/surajsingh/Desktop/ConversionLens/dashboard/vercel.json).
 
 Important note for auth:
 
-- Production auth uses secure cross-site cookies between `vercel.app` and `railway.app`
-- `CORS_ORIGIN` must exactly match your deployed frontend origin
-- The frontend must keep calling the backend with `credentials: include`, which is already implemented in this repo
+- Production auth should use same-origin `/api` calls through Vercel so session cookies stay first-party
+- `CORS_ORIGIN` must still exactly match your deployed frontend origin for direct backend checks and non-proxied access
+- The frontend keeps calling the API with `credentials: include`, which is already implemented in this repo
 
 ## Shopify setup
 

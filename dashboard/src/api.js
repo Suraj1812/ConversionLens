@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+function resolveApiBaseUrl() {
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app')) {
+    return '/api';
+  }
+
+  return import.meta.env.VITE_API_BASE_URL || '/api';
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 function buildUrl(path, query = {}) {
   const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
@@ -14,7 +22,7 @@ function buildUrl(path, query = {}) {
 
 function buildApiConfigurationError(url) {
   const error = new Error(
-    `The dashboard is receiving HTML instead of JSON from ${url}. Set VITE_API_BASE_URL in Vercel to your Railway backend URL, for example https://your-backend.up.railway.app.`
+    `The dashboard is receiving HTML instead of JSON from ${url}. Check the Vercel /api rewrite or your VITE_API_BASE_URL configuration.`
   );
   error.statusCode = 500;
   return error;
