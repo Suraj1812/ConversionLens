@@ -1,6 +1,6 @@
 import { ErrorState, LoadingState } from '../components/AsyncState.jsx';
 import BarList from '../components/BarList.jsx';
-import EmptyAnalyticsState from '../components/EmptyAnalyticsState.jsx';
+import EmptyBanner from '../components/EmptyBanner.jsx';
 import MetricCard from '../components/MetricCard.jsx';
 import Panel from '../components/Panel.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
@@ -34,54 +34,15 @@ export default function FunnelPage({ windowDays }) {
     }
   ];
   const largestDropOff = [...dropOffs].sort((left, right) => right.count - left.count)[0];
-  const recommendations = [];
-
-  if ((funnel.steps[1]?.conversionFromPrevious || 0) < 40) {
-    recommendations.push(
-      'Review product pages for pricing clarity, stronger buy messaging, and a more obvious add-to-cart action.'
-    );
-  }
-
-  if ((funnel.steps[2]?.conversionFromPrevious || 0) < 50) {
-    recommendations.push(
-      'Audit checkout friction such as shipping surprise, coupon distraction, or extra steps before payment.'
-    );
-  }
-
-  if (!recommendations.length) {
-    recommendations.push(
-      'The funnel looks reasonably healthy. Keep driving more qualified traffic and watch product-level conversion next.'
-    );
-  }
 
   return (
     <div className="page-grid">
-      <SectionHeading
-        title="Funnel"
-        subtitle={`Sequential session progression from ${rangeLabel || `the last ${windowDays} days`}.`}
-      />
+      <SectionHeading title="Funnel" subtitle={rangeLabel || `Last ${windowDays} days`} />
 
       {isEmpty ? (
-        <EmptyAnalyticsState
-          title="No funnel journey yet"
-          description="The funnel view becomes useful as soon as a few real storefront sessions have viewed products, added items to cart, and completed a test checkout."
-          steps={[
-            {
-              title: 'Generate product page traffic',
-              description:
-                'Open a few product pages in the Shopify storefront so the view stage has real signal.'
-            },
-            {
-              title: 'Create cart intent',
-              description:
-                'Add at least one product to cart and continue toward checkout to exercise the middle of the funnel.'
-            },
-            {
-              title: 'Complete a test purchase',
-              description:
-                'Place a development-store test order so the purchase step appears and end-to-end conversion can be measured.'
-            }
-          ]}
+        <EmptyBanner
+          title="No funnel data yet"
+          description="Generate product views, cart events, and a purchase to populate this page."
         />
       ) : null}
 
@@ -94,9 +55,14 @@ export default function FunnelPage({ windowDays }) {
             helper={`Step conversion: ${formatPercent(step.conversionFromPrevious)}`}
           />
         ))}
+        <MetricCard
+          label="Overall Conversion"
+          value={formatPercent(funnel.overallConversionRate)}
+          helper="Purchase sessions from product-view sessions."
+        />
       </div>
 
-      <Panel title="Journey Flow" subtitle="Relative strength of each step across the tracked funnel.">
+      <Panel title="Stages">
         <div className="funnel-strip">
           {funnel.steps.map((step) => (
             <div className="funnel-step-card" key={step.key}>
@@ -124,40 +90,35 @@ export default function FunnelPage({ windowDays }) {
       </Panel>
 
       <div className="page-grid two-column">
-        <Panel title="Drop-off Points" subtitle="Where the shopper journey is losing the most momentum.">
+        <Panel title="Drop-offs">
           <BarList
             items={dropOffs}
             valueFormatter={formatPercent}
-            emptyMessage="Drop-off data will appear after funnel events are tracked."
+            emptyMessage="No drop-off data yet."
           />
         </Panel>
 
-        <Panel title="Interpretation" subtitle="What the current funnel suggests about store performance.">
-          <div className="insight-list">
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">Overall conversion</p>
-                <p className="insight-helper">
-                  Sessions that purchased divided by sessions that viewed a product.
-                </p>
-              </div>
-              <strong className="insight-value">{formatPercent(funnel.overallConversionRate)}</strong>
+        <Panel title="Rates">
+          <div className="summary-list">
+            <div className="summary-row">
+              <span>View to cart</span>
+              <strong>{formatPercent(funnel.steps[1]?.conversionFromPrevious || 0)}</strong>
             </div>
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">Largest friction point</p>
-                <p className="insight-helper">
-                  Biggest percentage drop between two consecutive funnel steps.
-                </p>
-              </div>
-              <strong className="insight-value">{largestDropOff.label}</strong>
+            <div className="summary-row">
+              <span>Cart to purchase</span>
+              <strong>{formatPercent(funnel.steps[2]?.conversionFromPrevious || 0)}</strong>
             </div>
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">Priority focus</p>
-                <p className="insight-helper">{recommendations[0]}</p>
-              </div>
-              <strong className="insight-value">{formatPercent(largestDropOff.count)}</strong>
+            <div className="summary-row">
+              <span>Overall conversion</span>
+              <strong>{formatPercent(funnel.overallConversionRate)}</strong>
+            </div>
+            <div className="summary-row">
+              <span>Largest drop-off</span>
+              <strong>{largestDropOff.label}</strong>
+            </div>
+            <div className="summary-row">
+              <span>Largest drop-off rate</span>
+              <strong>{formatPercent(largestDropOff.count)}</strong>
             </div>
           </div>
         </Panel>

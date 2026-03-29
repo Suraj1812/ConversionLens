@@ -1,6 +1,6 @@
 import { ErrorState, LoadingState } from '../components/AsyncState.jsx';
 import BarList from '../components/BarList.jsx';
-import EmptyAnalyticsState from '../components/EmptyAnalyticsState.jsx';
+import EmptyBanner from '../components/EmptyBanner.jsx';
 import MetricCard from '../components/MetricCard.jsx';
 import Panel from '../components/Panel.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
@@ -59,32 +59,12 @@ export default function ProductsPage({ windowDays }) {
 
   return (
     <div className="page-grid">
-      <SectionHeading
-        title="Products"
-        subtitle={`Product-level performance and friction points from ${rangeLabel || `the last ${windowDays} days`}.`}
-      />
+      <SectionHeading title="Products" subtitle={rangeLabel || `Last ${windowDays} days`} />
 
       {isEmpty ? (
-        <EmptyAnalyticsState
-          title="No product analytics yet"
-          description="Once storefront events are flowing, this page highlights which products attract attention, convert efficiently, and leak from cart."
-          steps={[
-            {
-              title: 'Visit multiple product pages',
-              description:
-                'Create view events across a few products so the dashboard has something real to compare.'
-            },
-            {
-              title: 'Add different products to cart',
-              description:
-                'This helps surface cart intent and later shows which products are frequently abandoned.'
-            },
-            {
-              title: 'Place at least one test order',
-              description:
-                'Purchases unlock conversion-rate and product-performance comparisons.'
-            }
-          ]}
+        <EmptyBanner
+          title="No product data yet"
+          description="Track a few product views, carts, and purchases to populate this page."
         />
       ) : null}
 
@@ -111,7 +91,7 @@ export default function ProductsPage({ windowDays }) {
         />
       </div>
 
-      <Panel title="Catalog Performance" subtitle="A consolidated view of the products showing up across key analytics lists.">
+      <Panel title="Product performance">
         {!productRows.length ? (
           <p className="empty-text">No product performance rows available yet.</p>
         ) : (
@@ -145,15 +125,15 @@ export default function ProductsPage({ windowDays }) {
       </Panel>
 
       <div className="page-grid two-column">
-        <Panel title="Top Viewed Products" subtitle="Products pulling the most product-page attention.">
+        <Panel title="Top viewed">
           <BarList items={products.topViewed} emptyMessage="No product views have been tracked yet." />
         </Panel>
 
-        <Panel title="Most Abandoned Products" subtitle="Products that make it to cart but stall before purchase.">
+        <Panel title="Top purchased">
           <BarList
-            items={products.mostAbandoned}
-            valueKey="abandonmentCount"
-            emptyMessage="No abandoned cart patterns have been tracked yet."
+            items={products.topPurchased}
+            valueKey="purchaseCount"
+            emptyMessage="No purchases have been tracked yet."
           />
         </Panel>
       </div>

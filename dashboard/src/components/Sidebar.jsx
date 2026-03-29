@@ -1,13 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import BrandLogo from './BrandLogo.jsx';
-import StatusPill from './StatusPill.jsx';
 import { navigationItems } from '../lib/routes.js';
 
-export default function Sidebar({ statusTone, statusLabel }) {
+export default function Sidebar({ isOpen, onClose }) {
   return (
-    <aside className="sidebar">
-      <div className="brand-block">
+    <aside id="primary-navigation" className={isOpen ? 'sidebar open' : 'sidebar'}>
+      <div className="sidebar-header">
         <BrandLogo />
+        <button type="button" className="sidebar-close" aria-label="Close navigation" onClick={onClose}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5 5L15 15" />
+            <path d="M15 5L5 15" />
+          </svg>
+        </button>
       </div>
 
       <nav className="nav-list">
@@ -16,20 +21,12 @@ export default function Sidebar({ statusTone, statusLabel }) {
             key={link.path}
             to={link.path}
             className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            onClick={onClose}
           >
-            <span className="nav-link-label">{link.navLabel}</span>
-            <span className="nav-link-description">{link.navDescription}</span>
+            {link.navLabel}
           </NavLink>
         ))}
       </nav>
-
-      <div className="sidebar-footer">
-        <p className="sidebar-footer-label">System status</p>
-        <StatusPill tone={statusTone}>{statusLabel}</StatusPill>
-        <p className="sidebar-footer-copy">
-          Clean visibility into Shopify product views, cart actions, and purchases.
-        </p>
-      </div>
     </aside>
   );
 }

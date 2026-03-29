@@ -1,5 +1,6 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import BrandLogo from './components/BrandLogo.jsx';
 import RangeSelector from './components/RangeSelector.jsx';
 import SeoManager from './components/SeoManager.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -14,6 +15,7 @@ const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
 
 export default function App() {
   const [windowDays, setWindowDays] = useState(30);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { data: readiness, loading: readinessLoading, error: readinessError } = useAnalyticsData(
     '/readyz'
@@ -34,32 +36,79 @@ export default function App() {
         ? 'API connected'
         : 'Backend starting';
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setSidebarOpen(false);
+      }
+    }
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [sidebarOpen]);
+
   return (
     <div className="app-shell">
       <SeoManager />
-      <Sidebar statusTone={statusTone} statusLabel={statusLabel} />
+      <button
+        type="button"
+        className={sidebarOpen ? 'sidebar-backdrop visible' : 'sidebar-backdrop'}
+        aria-label="Close navigation menu"
+        onClick={() => setSidebarOpen(false)}
+      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="content-shell">
+        <div className="mobile-topbar">
+          <BrandLogo />
+          <button
+            type="button"
+            className="menu-button"
+            aria-label="Open navigation menu"
+            aria-controls="primary-navigation"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M3 5H17" />
+              <path d="M3 10H17" />
+              <path d="M3 15H17" />
+            </svg>
+          </button>
+        </div>
+
         <header className="content-header">
           <div className="page-intro">
-            <p className="eyebrow">Production workspace</p>
             <div className="title-row">
               <h1>{pageMeta.pageTitle}</h1>
               <StatusPill tone={statusTone}>{statusLabel}</StatusPill>
             </div>
             <p className="page-copy">{pageMeta.pageSubtitle}</p>
-            <div className="page-meta-row">
-              <StatusPill tone="neutral">{windowDays}-day reporting window</StatusPill>
-              {readiness?.databaseState ? (
-                <StatusPill tone={readiness?.status === 'ready' ? 'success' : 'neutral'}>
-                  Database {readiness.databaseState}
-                </StatusPill>
-              ) : null}
-              <StatusPill tone="neutral">Shopify event intelligence</StatusPill>
-            </div>
           </div>
 
-          <RangeSelector value={windowDays} onChange={setWindowDays} />
+          <div className="content-actions">
+            {readiness?.databaseState ? (
+              <StatusPill tone={readiness?.status === 'ready' ? 'success' : 'neutral'}>
+                Database {readiness.databaseState}
+              </StatusPill>
+            ) : null}
+            <RangeSelector value={windowDays} onChange={setWindowDays} />
+          </div>
         </header>
 
         <Suspense fallback={<SuspenseFallback />}>

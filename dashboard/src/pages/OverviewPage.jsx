@@ -1,6 +1,6 @@
 import { ErrorState, LoadingState } from '../components/AsyncState.jsx';
 import BarList from '../components/BarList.jsx';
-import EmptyAnalyticsState from '../components/EmptyAnalyticsState.jsx';
+import EmptyBanner from '../components/EmptyBanner.jsx';
 import MetricCard from '../components/MetricCard.jsx';
 import Panel from '../components/Panel.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
@@ -42,35 +42,26 @@ export default function OverviewPage({ windowDays }) {
   const topViewedProduct = products.topViewed[0];
   const topPurchasedProduct = products.topPurchased[0];
   const biggestLeakProduct = products.mostAbandoned[0];
+  const summaryRows = [
+    { label: 'View to cart rate', value: formatPercent(viewToCartRate) },
+    { label: 'Cart to purchase rate', value: formatPercent(cartToPurchaseRate) },
+    { label: 'Top viewed product', value: topViewedProduct?.productTitle || 'No data yet' },
+    { label: 'Top purchased product', value: topPurchasedProduct?.productTitle || 'No data yet' },
+    { label: 'Largest cart leak', value: biggestLeakProduct?.productTitle || 'No data yet' },
+    {
+      label: 'Largest cart leak rate',
+      value: formatPercent(biggestLeakProduct?.abandonmentRate || 0)
+    }
+  ];
 
   return (
     <div className="page-grid">
-      <SectionHeading
-        title="Overview"
-        subtitle={`High-level activity from ${rangeLabel || `the last ${windowDays} days`}.`}
-      />
+      <SectionHeading title="Overview" subtitle={rangeLabel || `Last ${windowDays} days`} />
 
       {isEmpty ? (
-        <EmptyAnalyticsState
-          title="No storefront events yet"
-          description="The dashboard is live and ready. The next step is sending Shopify storefront events into the backend."
-          steps={[
-            {
-              title: 'Install the customer pixel',
-              description:
-                'Paste the Shoplytics customer event script into Shopify so product views, add-to-cart actions, and purchases are emitted.'
-            },
-            {
-              title: 'Create a few real test sessions',
-              description:
-                'Open product pages, add items to cart, and place a test order from the storefront to generate real funnel data.'
-            },
-            {
-              title: 'Refresh the dashboard',
-              description:
-                'As soon as events hit the backend, the overview, funnel, and product analytics pages will populate automatically.'
-            }
-          ]}
+        <EmptyBanner
+          title="No storefront data yet"
+          description="Generate a few Shopify events to populate the dashboard."
         />
       ) : null}
 
@@ -90,17 +81,14 @@ export default function OverviewPage({ windowDays }) {
       </div>
 
       <div className="page-grid two-column">
-        <Panel title="Event Breakdown" subtitle="A quick look at tracked actions across the store.">
+        <Panel title="Event volume">
           <BarList
             items={eventBreakdown}
-            emptyMessage="Track some storefront activity to see event volume here."
+            emptyMessage="No event data yet."
           />
         </Panel>
 
-        <Panel
-          title="Conversion Snapshot"
-          subtitle="Session progression from product discovery through purchase."
-        >
+        <Panel title="Funnel">
           <div className="snapshot-list">
             {conversionSnapshot.map((step) => (
               <div className="snapshot-item" key={step.label}>
@@ -112,76 +100,20 @@ export default function OverviewPage({ windowDays }) {
         </Panel>
       </div>
 
-      <div className="page-grid two-column">
-        <Panel
-          title="Operational Readout"
-          subtitle="Useful ratios to judge storefront quality, not just raw event volume."
-        >
-          <div className="insight-list">
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">View to cart rate</p>
-                <p className="insight-helper">How often product interest turns into cart intent.</p>
-              </div>
-              <strong className="insight-value">{formatPercent(viewToCartRate)}</strong>
+      <Panel title="Summary">
+        <div className="summary-list">
+          {summaryRows.map((row) => (
+            <div className="summary-row" key={row.label}>
+              <span>{row.label}</span>
+              <strong>{row.value}</strong>
             </div>
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">Cart to purchase rate</p>
-                <p className="insight-helper">How efficiently checkout intent becomes revenue.</p>
-              </div>
-              <strong className="insight-value">{formatPercent(cartToPurchaseRate)}</strong>
-            </div>
-            <div className="insight-row">
-              <div>
-                <p className="insight-label">Purchasing sessions</p>
-                <p className="insight-helper">Completed purchase journeys captured in the current window.</p>
-              </div>
-              <strong className="insight-value">
-                {formatNumber(funnelSteps[2]?.count || 0)}
-              </strong>
-            </div>
+          ))}
+          <div className="summary-row">
+            <span>Purchasing sessions</span>
+            <strong>{formatNumber(funnelSteps[2]?.count || 0)}</strong>
           </div>
-        </Panel>
-
-        <Panel title="Product Spotlight" subtitle="A quick read on winners and friction points.">
-          <div className="spotlight-list">
-            <div className="spotlight-item">
-              <p className="spotlight-label">Most viewed</p>
-              <h3 className="spotlight-title">
-                {topViewedProduct?.productTitle || 'Waiting for view data'}
-              </h3>
-              <p className="spotlight-meta">
-                {topViewedProduct
-                  ? `${formatNumber(topViewedProduct.viewCount)} tracked views`
-                  : 'Product attention data appears after the first storefront sessions.'}
-              </p>
-            </div>
-            <div className="spotlight-item">
-              <p className="spotlight-label">Most purchased</p>
-              <h3 className="spotlight-title">
-                {topPurchasedProduct?.productTitle || 'Waiting for purchase data'}
-              </h3>
-              <p className="spotlight-meta">
-                {topPurchasedProduct
-                  ? `${formatNumber(topPurchasedProduct.purchaseCount)} purchases recorded`
-                  : 'This will update after a checkout completes in the connected store.'}
-              </p>
-            </div>
-            <div className="spotlight-item">
-              <p className="spotlight-label">Largest cart leak</p>
-              <h3 className="spotlight-title">
-                {biggestLeakProduct?.productTitle || 'Waiting for cart data'}
-              </h3>
-              <p className="spotlight-meta">
-                {biggestLeakProduct
-                  ? `${formatPercent(biggestLeakProduct.abandonmentRate)} abandonment rate`
-                  : 'Cart leakage appears after real add-to-cart traffic starts flowing.'}
-              </p>
-            </div>
-          </div>
-        </Panel>
-      </div>
+        </div>
+      </Panel>
     </div>
   );
 }
