@@ -379,39 +379,6 @@ select {
   margin-top: 20px;
 }
 
-.credential-card {
-  display: grid;
-  gap: 6px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--panel-muted);
-}
-
-.credential-title,
-.credential-text {
-  margin: 0;
-}
-
-.credential-title {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted-soft);
-}
-
-.credential-text {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.credential-text strong {
-  color: var(--navy);
-  font-weight: 700;
-}
-
 .content-header {
   display: flex;
   align-items: flex-start;

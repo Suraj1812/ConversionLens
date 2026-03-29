@@ -16,8 +16,8 @@ export default function LoginPage() {
   const auth = useAuth();
   const toast = useToast();
   const [form, setForm] = useState({
-    email: 'admin@Shoplytics.com',
-    password: 'Suraj@123'
+    email: '',
+    password: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,28 +47,16 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell
-      title="Sign in"
-      subtitle="Use the fixed admin account to access the Shoplytics dashboard."
-    >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <div className="credential-card">
-          <p className="credential-title">Admin credentials</p>
-          <p className="credential-text">
-            Email: <strong>admin@Shoplytics.com</strong>
-          </p>
-          <p className="credential-text">
-            Password: <strong>Suraj@123</strong>
-          </p>
-        </div>
-
+    <AuthShell title="Sign in" subtitle="Sign in to access the Shoplytics analytics dashboard.">
+      <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
         <label className="form-field">
           <span>Email</span>
           <input
             className="text-input"
             type="email"
             name="email"
-            autoComplete="email"
+            autoComplete="off"
+            autoCapitalize="none"
             value={form.email}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
             required
@@ -81,7 +69,7 @@ export default function LoginPage() {
             className="text-input"
             type="password"
             name="password"
-            autoComplete="current-password"
+            autoComplete="off"
             value={form.password}
             onChange={(event) =>
               setForm((current) => ({ ...current, password: event.target.value }))
@@ -89,8 +77,6 @@ export default function LoginPage() {
             required
           />
         </label>
-
-        <p className="form-hint">Only the fixed admin account can access this dashboard.</p>
 
         <button className="primary-button" type="submit" disabled={submitting}>
           {submitting ? 'Signing in...' : 'Sign in'}
