@@ -100,19 +100,24 @@ The production dashboard will be available on `http://localhost:8080`.
 
 ## Railway backend deployment
 
-The backend is ready for Railway with config-as-code in [backend/railway.json](/Users/surajsingh/Desktop/ConversionLens/backend/railway.json).
+The backend is ready for Railway in two ways:
+
+- Root deploy from the repo root using [railway.json](/Users/surajsingh/Desktop/ConversionLens/railway.json) and [Dockerfile](/Users/surajsingh/Desktop/ConversionLens/Dockerfile)
+- Root-directory deploy from `backend/` using [backend/railway.json](/Users/surajsingh/Desktop/ConversionLens/backend/railway.json)
 
 Use this setup in Railway:
 
 1. Create a new service from the GitHub repo.
-2. Set the service root directory to `backend`.
-3. In service settings, set the Railway config file path to `/backend/railway.json`.
+2. Simplest option: leave the service at repo root. Railway will use the root [railway.json](/Users/surajsingh/Desktop/ConversionLens/railway.json) automatically.
+3. Optional alternative: set the service root directory to `backend` and config path to `/backend/railway.json`.
 4. Add a PostgreSQL database in the same Railway project.
 5. In backend service variables, set `DATABASE_URL` from the Postgres reference variable.
 6. Set `CORS_ORIGIN=https://conversionlens.vercel.app`.
 7. Set `TRUST_PROXY=true`.
 8. Keep the healthcheck path as `/readyz`.
 9. Generate a public Railway domain for the backend service.
+
+If your current Railway service already failed from the root like in your screenshot, you can now simply click redeploy after pulling the latest GitHub commit. No root-directory change is required for the root deploy path anymore.
 
 Recommended Railway variables:
 
