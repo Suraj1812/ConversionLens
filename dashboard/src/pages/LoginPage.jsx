@@ -84,7 +84,19 @@ export default function LoginPage() {
               aria-label={passwordVisible ? 'Hide password' : 'Show password'}
               onClick={() => setPasswordVisible((current) => !current)}
             >
-              {passwordVisible ? 'Hide' : 'Show'}
+              <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
+              {passwordVisible ? (
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M2.5 10C3.9 6.8 6.7 5 10 5s6.1 1.8 7.5 5c-1.4 3.2-4.2 5-7.5 5S3.9 13.2 2.5 10Z" />
+                  <circle cx="10" cy="10" r="2.4" />
+                  <path d="M4 4L16 16" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M2.5 10C3.9 6.8 6.7 5 10 5s6.1 1.8 7.5 5c-1.4 3.2-4.2 5-7.5 5S3.9 13.2 2.5 10Z" />
+                  <circle cx="10" cy="10" r="2.4" />
+                </svg>
+              )}
             </button>
           </div>
         </label>
