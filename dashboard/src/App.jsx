@@ -24,7 +24,10 @@ export default function App() {
   const isAuthenticated = Boolean(auth.user);
   const { data: readiness, loading: readinessLoading, error: readinessError } = useAnalyticsData(
     '/readyz',
-    undefined
+    undefined,
+    {
+      credentialsMode: 'omit'
+    }
   );
   const pageMeta = getRouteMeta(location.pathname);
   const statusTone = readinessError

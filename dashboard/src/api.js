@@ -29,12 +29,19 @@ function createRequestError(message, statusCode, details) {
 
 export async function requestJson(
   path,
-  { body, headers = {}, method = 'GET', query, suppressUnauthorizedEvent = false } = {}
+  {
+    body,
+    credentialsMode = 'include',
+    headers = {},
+    method = 'GET',
+    query,
+    suppressUnauthorizedEvent = false
+  } = {}
 ) {
   const url = buildUrl(path, query);
   const response = await fetch(url, {
     method,
-    credentials: 'include',
+    credentials: credentialsMode,
     headers: {
       Accept: 'application/json',
       ...(body ? { 'Content-Type': 'application/json' } : {}),

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getJson } from '../api.js';
 
-export function useAnalyticsData(path, query) {
+export function useAnalyticsData(path, query, requestOptions = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +14,7 @@ export function useAnalyticsData(path, query) {
       setError('');
 
       try {
-        const nextData = await getJson(path, query);
+        const nextData = await getJson(path, query, requestOptions);
 
         if (isActive) {
           setData(nextData);
@@ -35,7 +35,7 @@ export function useAnalyticsData(path, query) {
     return () => {
       isActive = false;
     };
-  }, [path, JSON.stringify(query)]);
+  }, [path, JSON.stringify(query), JSON.stringify(requestOptions)]);
 
   return {
     data,

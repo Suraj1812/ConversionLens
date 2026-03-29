@@ -26,11 +26,19 @@ const defaultConfig = {
   authSessionDays: 7
 };
 
-function buildCorsOrigin(origins) {
-  const allowedOrigins = new Set(origins || []);
+function createAllowedOriginsSet(origins) {
+  return new Set(origins || []);
+}
+
+function isAllowedOrigin(origin, allowedOrigins) {
+  return !origin || allowedOrigins.size === 0 || allowedOrigins.has(origin);
+}
+
+function buildCorsOrigin(allowedOrigins) {
+  const origins = allowedOrigins || createAllowedOriginsSet();
 
   return (origin, callback) => {
-    if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+    if (isAllowedOrigin(origin, origins)) {
       callback(null, true);
       return;
     }
@@ -50,9 +58,14 @@ export function createApp({
     ready: false,
     state: 'disconnected'
   })
-} = {}) {
+  } = {}) {
   const app = express();
+  const allowedOrigins = createAllowedOriginsSet(config.corsOrigins);
   const requireAuth = createRequireAuth(auth, config);
+  const corsOptions = {
+    origin: buildCorsOrigin(allowedOrigins),
+    credentials: true
+  };
 
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy);
@@ -66,10 +79,21 @@ export function createApp({
   app.use(compression());
   app.use(
     cors({
-      origin: buildCorsOrigin(config.corsOrigins),
-      credentials: true
+      ...corsOptions
     })
   );
+  app.options('*', cors(corsOptions));
+  app.use((req, res, next) => {
+    const requestOrigin = req.headers.origin;
+
+    if (isAllowedOrigin(requestOrigin, allowedOrigins) && requestOrigin) {
+      res.header('Access-Control-Allow-Origin', requestOrigin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.append('Vary', 'Origin');
+    }
+
+    next();
+  });
   app.use(
     rateLimit({
       windowMs: config.rateLimitWindowMs,
