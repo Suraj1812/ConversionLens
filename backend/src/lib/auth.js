@@ -26,6 +26,17 @@ export async function verifyPassword(password, passwordHash) {
   return timingSafeEqual(derivedKey, storedKey);
 }
 
+export function safeEqualStrings(left, right) {
+  const leftBuffer = Buffer.from(String(left || ''), 'utf8');
+  const rightBuffer = Buffer.from(String(right || ''), 'utf8');
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(leftBuffer, rightBuffer);
+}
+
 export function createSessionToken() {
   return randomBytes(32).toString('base64url');
 }
@@ -62,6 +73,7 @@ export function buildSessionCookieOptions(config) {
   const isProduction = config.nodeEnv === 'production';
   return {
     httpOnly: true,
+    priority: 'high',
     secure: isProduction,
     sameSite: isProduction ? 'none' : 'lax',
     maxAge: config.authSessionDays * 24 * 60 * 60 * 1000,

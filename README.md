@@ -15,7 +15,7 @@ compose.yaml
 ## What is production-ready in this repo
 
 - Hardened Express API with `helmet`, `compression`, rate limiting, request IDs, readiness checks, and structured error responses
-- Secure register, login, logout, and session-based dashboard access using httpOnly cookies
+- Secure fixed-admin login, logout, and session-based dashboard access using httpOnly cookies
 - Idempotent event ingestion with optional `eventId` deduplication
 - Analytics filtered by time window
 - Dockerfiles for backend and dashboard
@@ -47,7 +47,6 @@ The backend runs on `http://localhost:4000`.
 ### Backend API
 
 - `POST /track-event`
-- `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/logout`
 - `GET /auth/me`
@@ -93,25 +92,25 @@ The Vite dev server proxies `/api` to the backend, so the frontend and productio
 
 ## Authentication
 
-- Registration and login create a secure server-side session
+- The app uses one fixed admin account for dashboard access
+- Login creates a secure server-side session
 - The backend stores only a hashed session token and sends the real token as an `httpOnly` cookie
 - Dashboard analytics endpoints are protected and require an authenticated session
 - `POST /track-event`, `GET /healthz`, and `GET /readyz` remain public for Shopify ingestion and platform health checks
 
-### Auth payloads
+### Fixed admin credentials
 
-```json
-{
-  "name": "Suraj Singh",
-  "email": "suraj@example.com",
-  "password": "Password1"
-}
+```text
+Email: admin@Shoplytics.com
+Password: Suraj@123
 ```
 
+### Login payload
+
 ```json
 {
-  "email": "suraj@example.com",
-  "password": "Password1"
+  "email": "admin@Shoplytics.com",
+  "password": "Suraj@123"
 }
 ```
 
@@ -159,6 +158,9 @@ CORS_ORIGIN=https://conversionlens.vercel.app
 TRUST_PROXY=true
 AUTH_COOKIE_NAME=shoplytics_session
 AUTH_SESSION_DAYS=7
+ADMIN_EMAIL=admin@Shoplytics.com
+ADMIN_PASSWORD=Suraj@123
+ADMIN_NAME=Shoplytics Admin
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=500
 DEFAULT_WINDOW_DAYS=30
@@ -196,7 +198,7 @@ You will need:
 
 ## What the dashboard shows
 
-- Secure auth: register, login, logout, and protected dashboard access
+- Secure auth: fixed-admin login, logout, and protected dashboard access
 - Overview: total users, total tracked events, conversion rate
 - Funnel: sequential view to cart to purchase progression
 - Products: top viewed, top purchased, best converting, and most abandoned products

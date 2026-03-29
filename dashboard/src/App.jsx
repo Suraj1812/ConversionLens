@@ -15,7 +15,6 @@ const OverviewPage = lazy(() => import('./pages/OverviewPage.jsx'));
 const FunnelPage = lazy(() => import('./pages/FunnelPage.jsx'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 
 export default function App() {
   const auth = useAuth();
@@ -23,7 +22,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const isAuthenticated = Boolean(auth.user);
-  const isAuthRoute = ['/login', '/register'].includes(location.pathname);
+  const isAuthRoute = location.pathname === '/login';
   const { data: readiness, loading: readinessLoading, error: readinessError } = useAnalyticsData(
     '/readyz',
     undefined,
@@ -107,7 +106,6 @@ export default function App() {
         <Suspense fallback={<SuspenseFallback />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
             <Route
               path="*"
               element={<Navigate to="/login" replace state={{ from: location.pathname }} />}
@@ -184,7 +182,6 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/overview" replace />} />
               <Route path="/login" element={<Navigate to="/overview" replace />} />
-              <Route path="/register" element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={<OverviewPage windowDays={windowDays} />} />
               <Route path="/funnel" element={<FunnelPage windowDays={windowDays} />} />
               <Route path="/products" element={<ProductsPage windowDays={windowDays} />} />

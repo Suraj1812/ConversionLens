@@ -23,7 +23,10 @@ const defaultConfig = {
   trustProxy: false,
   defaultWindowDays: 30,
   authCookieName: 'shoplytics_session',
-  authSessionDays: 7
+  authSessionDays: 7,
+  adminEmail: 'admin@shoplytics.com',
+  adminPassword: 'Suraj@123',
+  adminName: 'Shoplytics Admin'
 };
 
 function createAllowedOriginsSet(origins) {
@@ -51,9 +54,7 @@ export function createApp({
   config = defaultConfig,
   analytics = analyticsService,
   events = eventService,
-  auth = createAuthService(undefined, {
-    authSessionDays: config.authSessionDays
-  }),
+  auth = createAuthService(undefined, config),
   getReadiness = async () => ({
     ready: false,
     state: 'disconnected'

@@ -32,9 +32,24 @@ export async function initializeDatabase() {
       id BIGSERIAL PRIMARY KEY,
       name VARCHAR(80) NOT NULL,
       email VARCHAR(320) NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      password_hash TEXT,
+      email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+      last_login_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE users
+      ALTER COLUMN password_hash DROP NOT NULL;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
     CREATE TABLE IF NOT EXISTS user_sessions (
       id BIGSERIAL PRIMARY KEY,

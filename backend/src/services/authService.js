@@ -1,16 +1,9 @@
+import { createSessionToken, hashSessionToken, safeEqualStrings } from '../lib/auth.js';
 import { createHttpError } from '../lib/http.js';
-import {
-  createSessionToken,
-  hashPassword,
-  hashSessionToken,
-  verifyPassword
-} from '../lib/auth.js';
 import { authRepository } from '../repositories/authRepository.js';
 
 function normalizeEmail(email) {
-  return String(email || '')
-    .trim()
-    .toLowerCase();
+  return String(email || '').trim().toLowerCase();
 }
 
 function sanitizeUser(user) {
@@ -18,6 +11,8 @@ function sanitizeUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    role: 'admin',
+    emailVerified: true,
     createdAt: user.createdAt || user.userCreatedAt
   };
 }
@@ -25,36 +20,43 @@ function sanitizeUser(user) {
 export function createAuthService(
   repository = authRepository,
   options = {
+    adminEmail: 'admin@shoplytics.com',
+    adminName: 'Shoplytics Admin',
+    adminPassword: 'Suraj@123',
     authSessionDays: 7
   }
 ) {
+  const adminEmail = normalizeEmail(options.adminEmail);
+
   return {
-    async register(credentials, context = {}) {
-      const email = normalizeEmail(credentials.email);
-      const existingUser = await repository.findUserByEmail(email);
+    async ensureAdminUser() {
+      const existingUser = await repository.findUserByEmail(adminEmail);
 
       if (existingUser) {
-        throw createHttpError(409, 'An account already exists with this email');
+        return repository.touchUserLogin(existingUser.id, {
+          emailVerified: true
+        });
       }
 
-      const passwordHash = await hashPassword(credentials.password);
-
       try {
-        const user = await repository.createUser({
-          name: credentials.name.trim(),
-          email,
-          passwordHash
+        const createdUser = await repository.createUser({
+          name: options.adminName,
+          email: adminEmail,
+          passwordHash: null,
+          emailVerified: true,
+          lastLoginAt: new Date().toISOString()
         });
 
-        const session = await this.createSession(user.id, context);
-        return {
-          user: sanitizeUser(user),
-          sessionToken: session.sessionToken,
-          sessionExpiresAt: session.expiresAt
-        };
+        return createdUser;
       } catch (error) {
         if (error.code === '23505') {
-          throw createHttpError(409, 'An account already exists with this email');
+          const user = await repository.findUserByEmail(adminEmail);
+
+          if (user) {
+            return repository.touchUserLogin(user.id, {
+              emailVerified: true
+            });
+          }
         }
 
         throw error;
@@ -62,22 +64,18 @@ export function createAuthService(
     },
 
     async login(credentials, context = {}) {
-      const email = normalizeEmail(credentials.email);
-      const user = await repository.findUserByEmail(email);
+      const submittedEmail = normalizeEmail(credentials.email);
+      const passwordMatches = safeEqualStrings(credentials.password, options.adminPassword);
 
-      if (!user) {
+      if (submittedEmail !== adminEmail || !passwordMatches) {
         throw createHttpError(401, 'Invalid email or password');
       }
 
-      const passwordMatches = await verifyPassword(credentials.password, user.passwordHash);
+      const adminUser = await this.ensureAdminUser();
+      const session = await this.createSession(adminUser.id, context);
 
-      if (!passwordMatches) {
-        throw createHttpError(401, 'Invalid email or password');
-      }
-
-      const session = await this.createSession(user.id, context);
       return {
-        user: sanitizeUser(user),
+        user: sanitizeUser(adminUser),
         sessionToken: session.sessionToken,
         sessionExpiresAt: session.expiresAt
       };
@@ -112,7 +110,7 @@ export function createAuthService(
       const sessionTokenHash = hashSessionToken(sessionToken);
       const session = await repository.findSessionByTokenHash(sessionTokenHash);
 
-      if (!session) {
+      if (!session || normalizeEmail(session.email) !== adminEmail) {
         return null;
       }
 

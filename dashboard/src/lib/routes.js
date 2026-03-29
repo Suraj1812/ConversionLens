@@ -2,16 +2,9 @@ export const routeMeta = {
   '/login': {
     path: '/login',
     pageTitle: 'Sign in',
-    pageSubtitle: 'Access your Shopify analytics workspace.',
+    pageSubtitle: 'Access the Shoplytics admin dashboard.',
     seoTitle: 'Sign In',
-    seoDescription: 'Secure sign in for the Shoplytics Shopify analytics dashboard.'
-  },
-  '/register': {
-    path: '/register',
-    pageTitle: 'Create account',
-    pageSubtitle: 'Create a secure account for your analytics workspace.',
-    seoTitle: 'Create Account',
-    seoDescription: 'Create a secure Shoplytics account to access Shopify analytics.'
+    seoDescription: 'Secure sign in for the Shoplytics admin analytics dashboard.'
   },
   '/overview': {
     path: '/overview',

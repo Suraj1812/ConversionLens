@@ -82,25 +82,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function register(credentials) {
-    setTransition({
-      title: 'Creating your account',
-      description: 'Securing access and preparing your dashboard.'
-    });
-
-    try {
-      const payload = await postJson('/auth/register', credentials, {
-        suppressUnauthorizedEvent: true
-      });
-
-      setUser(payload.user);
-      return payload.user;
-    } catch (error) {
-      setTransition(null);
-      throw error;
-    }
-  }
-
   async function logout() {
     setTransition({
       title: 'Signing you out',
@@ -134,7 +115,6 @@ export function AuthProvider({ children }) {
         login,
         logout,
         refresh,
-        register,
         clearTransition: () => setTransition(null),
         transition
       }}

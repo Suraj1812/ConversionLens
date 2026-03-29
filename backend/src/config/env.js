@@ -16,6 +16,9 @@ const envSchema = z.object({
     .transform((value) => value === 'true'),
   AUTH_COOKIE_NAME: z.string().min(1).default('shoplytics_session'),
   AUTH_SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(7),
+  ADMIN_EMAIL: z.string().email().default('admin@shoplytics.com'),
+  ADMIN_PASSWORD: z.string().min(8).default('Suraj@123'),
+  ADMIN_NAME: z.string().trim().min(2).max(80).default('Shoplytics Admin'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(250),
   DEFAULT_WINDOW_DAYS: z.coerce.number().int().min(1).max(365).default(30)
@@ -41,6 +44,9 @@ export function loadEnv() {
     trustProxy: parsed.data.TRUST_PROXY,
     authCookieName: parsed.data.AUTH_COOKIE_NAME,
     authSessionDays: parsed.data.AUTH_SESSION_DAYS,
+    adminEmail: parsed.data.ADMIN_EMAIL.trim().toLowerCase(),
+    adminPassword: parsed.data.ADMIN_PASSWORD,
+    adminName: parsed.data.ADMIN_NAME.trim(),
     rateLimitWindowMs: parsed.data.RATE_LIMIT_WINDOW_MS,
     rateLimitMaxRequests: parsed.data.RATE_LIMIT_MAX_REQUESTS,
     defaultWindowDays: parsed.data.DEFAULT_WINDOW_DAYS

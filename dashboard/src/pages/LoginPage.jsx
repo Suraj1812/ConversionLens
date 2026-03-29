@@ -1,11 +1,11 @@
 import { startTransition, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import AuthShell from '../components/AuthShell.jsx';
 import { useToast } from '../toast/ToastProvider.jsx';
 
 function getRedirectTarget(state) {
-  return typeof state?.from === 'string' && !['/login', '/register'].includes(state.from)
+  return typeof state?.from === 'string' && state.from !== '/login'
     ? state.from
     : '/overview';
 }
@@ -16,8 +16,8 @@ export default function LoginPage() {
   const auth = useAuth();
   const toast = useToast();
   const [form, setForm] = useState({
-    email: '',
-    password: ''
+    email: 'admin@Shoplytics.com',
+    password: 'Suraj@123'
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,14 +49,19 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Sign in"
-      subtitle="Access your Shopify analytics workspace."
-      footer={
-        <p className="form-note">
-          Don&apos;t have an account? <Link to="/register">Create one</Link>
-        </p>
-      }
+      subtitle="Use the fixed admin account to access the Shoplytics dashboard."
     >
       <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="credential-card">
+          <p className="credential-title">Admin credentials</p>
+          <p className="credential-text">
+            Email: <strong>admin@Shoplytics.com</strong>
+          </p>
+          <p className="credential-text">
+            Password: <strong>Suraj@123</strong>
+          </p>
+        </div>
+
         <label className="form-field">
           <span>Email</span>
           <input
@@ -84,6 +89,8 @@ export default function LoginPage() {
             required
           />
         </label>
+
+        <p className="form-hint">Only the fixed admin account can access this dashboard.</p>
 
         <button className="primary-button" type="submit" disabled={submitting}>
           {submitting ? 'Signing in...' : 'Sign in'}

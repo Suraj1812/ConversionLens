@@ -6,15 +6,18 @@ export function createAuthRepository(poolProvider = getPool) {
       const pool = poolProvider();
       const { rows } = await pool.query(
         `
-          INSERT INTO users (name, email, password_hash)
-          VALUES ($1, $2, $3)
+          INSERT INTO users (name, email, password_hash, email_verified, last_login_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, NOW())
           RETURNING
             id,
             name,
             email,
-            created_at AS "createdAt"
+            email_verified AS "emailVerified",
+            created_at AS "createdAt",
+            updated_at AS "updatedAt",
+            last_login_at AS "lastLoginAt"
         `,
-        [user.name, user.email, user.passwordHash]
+        [user.name, user.email, user.passwordHash ?? null, user.emailVerified ?? false, user.lastLoginAt ?? null]
       );
 
       return rows[0];
@@ -28,8 +31,11 @@ export function createAuthRepository(poolProvider = getPool) {
             id,
             name,
             email,
+            email_verified AS "emailVerified",
             password_hash AS "passwordHash",
-            created_at AS "createdAt"
+            created_at AS "createdAt",
+            updated_at AS "updatedAt",
+            last_login_at AS "lastLoginAt"
           FROM users
           WHERE email = $1
           LIMIT 1
@@ -48,12 +54,44 @@ export function createAuthRepository(poolProvider = getPool) {
             id,
             name,
             email,
-            created_at AS "createdAt"
+            email_verified AS "emailVerified",
+            created_at AS "createdAt",
+            updated_at AS "updatedAt",
+            last_login_at AS "lastLoginAt"
           FROM users
           WHERE id = $1
           LIMIT 1
         `,
         [id]
+      );
+
+      return rows[0] ?? null;
+    },
+
+    async touchUserLogin(userId, options = {}) {
+      const pool = poolProvider();
+      const { rows } = await pool.query(
+        `
+          UPDATE users
+          SET
+            email_verified = CASE
+              WHEN $2 THEN TRUE
+              ELSE email_verified
+            END,
+            last_login_at = NOW(),
+            updated_at = NOW()
+          WHERE id = $1
+          RETURNING
+            id,
+            name,
+            email,
+            email_verified AS "emailVerified",
+            password_hash AS "passwordHash",
+            created_at AS "createdAt",
+            updated_at AS "updatedAt",
+            last_login_at AS "lastLoginAt"
+        `,
+        [userId, options.emailVerified ?? true]
       );
 
       return rows[0] ?? null;
@@ -95,7 +133,10 @@ export function createAuthRepository(poolProvider = getPool) {
             u.id,
             u.name,
             u.email,
-            u.created_at AS "userCreatedAt"
+            u.email_verified AS "emailVerified",
+            u.created_at AS "userCreatedAt",
+            u.updated_at AS "updatedAt",
+            u.last_login_at AS "lastLoginAt"
           FROM user_sessions s
           JOIN users u ON u.id = s.user_id
           WHERE s.session_token_hash = $1

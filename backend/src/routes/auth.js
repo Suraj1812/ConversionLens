@@ -7,7 +7,7 @@ import {
 } from '../lib/auth.js';
 import { createHttpError } from '../lib/http.js';
 import { createRequireAuth } from '../middleware/requireAuth.js';
-import { loginSchema, registerSchema } from '../validation/auth.js';
+import { loginSchema } from '../validation/auth.js';
 
 function parsePayload(payload, schema, message) {
   const parsed = schema.safeParse(payload);
@@ -36,21 +36,6 @@ export function createAuthRouter(authService, config) {
     legacyHeaders: false,
     message: {
       message: 'Too many authentication attempts. Try again in a few minutes.'
-    }
-  });
-
-  router.post('/register', authLimiter, async (req, res, next) => {
-    try {
-      const payload = parsePayload(req.body, registerSchema, 'Invalid registration payload');
-      const result = await authService.register(payload, buildRequestContext(req));
-      setSessionCookie(res, config, result.sessionToken);
-
-      res.status(201).json({
-        user: result.user,
-        sessionExpiresAt: result.sessionExpiresAt
-      });
-    } catch (error) {
-      next(error);
     }
   });
 
