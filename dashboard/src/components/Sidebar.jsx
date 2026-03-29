@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import BrandLogo from './BrandLogo.jsx';
 
 const links = [
   { to: '/overview', label: 'Overview' },
@@ -10,11 +11,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="brand-block">
-        <div className="brand-mark">S</div>
-        <div>
-          <p className="brand-name">Shoplytics</p>
-          <p className="brand-subtitle">Tracking & analytics</p>
-        </div>
+        <BrandLogo />
       </div>
 
       <nav className="nav-list">

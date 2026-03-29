@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import BrandLogo from './components/BrandLogo.jsx';
 import RangeSelector from './components/RangeSelector.jsx';
+import SeoManager from './components/SeoManager.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import SuspenseFallback from './components/SuspenseFallback.jsx';
 
@@ -13,11 +15,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <SeoManager />
       <Sidebar />
 
       <main className="content-shell">
         <div className="content-header">
           <header className="page-intro">
+            <BrandLogo compact />
             <p className="eyebrow">Shoplytics</p>
             <h1>Shopify Tracking Dashboard</h1>
             <p className="page-copy">

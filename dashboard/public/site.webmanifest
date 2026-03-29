@@ -1,0 +1,17 @@
+{
+  "name": "Shoplytics",
+  "short_name": "Shoplytics",
+  "description": "Shopify analytics dashboard for funnel tracking, conversion analysis, and product performance insights.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

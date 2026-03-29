@@ -40,32 +40,46 @@ select {
 }
 
 .brand-block {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   margin-bottom: 28px;
 }
 
-.brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  background: #111827;
-  color: #ffffff;
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.brand-name {
+.brand-logo.compact {
+  margin-bottom: 14px;
+}
+
+.brand-logo-mark {
+  width: 44px;
+  height: 44px;
+  display: block;
+  flex: none;
+}
+
+.brand-logo.compact .brand-logo-mark {
+  width: 52px;
+  height: 52px;
+}
+
+.brand-logo-type {
+  display: grid;
+  gap: 3px;
+}
+
+.brand-logo-wordmark {
   margin: 0;
   font-weight: 700;
+  font-size: 17px;
 }
 
-.brand-subtitle {
-  margin: 4px 0 0;
+.brand-logo-tagline {
+  margin: 0;
   color: #6b7280;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .nav-list {
