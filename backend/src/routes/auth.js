@@ -2,6 +2,7 @@ import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
 import {
   clearSessionCookie,
+  getBearerTokenFromRequest,
   getSessionTokenFromRequest,
   setSessionCookie
 } from '../lib/auth.js';
@@ -46,6 +47,7 @@ export function createAuthRouter(authService, config) {
       setSessionCookie(res, config, result.sessionToken);
 
       res.json({
+        sessionToken: result.sessionToken,
         user: result.user,
         sessionExpiresAt: result.sessionExpiresAt
       });
@@ -56,7 +58,8 @@ export function createAuthRouter(authService, config) {
 
   router.post('/logout', async (req, res, next) => {
     try {
-      const sessionToken = getSessionTokenFromRequest(req, config.authCookieName);
+      const sessionToken =
+        getBearerTokenFromRequest(req) || getSessionTokenFromRequest(req, config.authCookieName);
       await authService.logout(sessionToken);
       clearSessionCookie(res, config);
 

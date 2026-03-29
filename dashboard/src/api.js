@@ -1,12 +1,9 @@
-function resolveApiBaseUrl() {
-  if (typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app')) {
-    return '/api';
-  }
-
-  return import.meta.env.VITE_API_BASE_URL || '/api';
-}
-
-const API_BASE_URL = resolveApiBaseUrl();
+const SESSION_TOKEN_KEY = 'shoplytics.session_token';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app')
+    ? 'https://conversionlens-production.up.railway.app'
+    : '/api');
 
 function buildUrl(path, query = {}) {
   const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
@@ -39,7 +36,7 @@ export async function requestJson(
   path,
   {
     body,
-    credentialsMode = 'include',
+    credentialsMode = 'omit',
     headers = {},
     method = 'GET',
     query,
@@ -47,12 +44,14 @@ export async function requestJson(
   } = {}
 ) {
   const url = buildUrl(path, query);
+  const sessionToken = getStoredSessionToken();
   const response = await fetch(url, {
     method,
     credentials: credentialsMode,
     headers: {
       Accept: 'application/json',
       ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
       ...headers
     },
     ...(body ? { body: JSON.stringify(body) } : {})
@@ -93,4 +92,33 @@ export function postJson(path, body, options = {}) {
     method: 'POST',
     body
   });
+}
+
+export function getStoredSessionToken() {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return window.localStorage.getItem(SESSION_TOKEN_KEY) || '';
+}
+
+export function setStoredSessionToken(token) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (token) {
+    window.localStorage.setItem(SESSION_TOKEN_KEY, token);
+    return;
+  }
+
+  window.localStorage.removeItem(SESSION_TOKEN_KEY);
+}
+
+export function clearStoredSessionToken() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(SESSION_TOKEN_KEY);
 }

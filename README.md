@@ -94,7 +94,8 @@ The Vite dev server proxies `/api` to the backend, so the frontend and productio
 
 - The app uses one fixed admin account for dashboard access
 - Login creates a secure server-side session
-- The backend stores only a hashed session token and sends the real token as an `httpOnly` cookie
+- The backend stores only a hashed session token
+- The dashboard sends the session token as a bearer token for protected API requests, which avoids browser cross-site cookie issues between Vercel and Railway
 - Dashboard analytics endpoints are protected and require an authenticated session
 - `POST /track-event`, `GET /healthz`, and `GET /readyz` remain public for Shopify ingestion and platform health checks
 
@@ -176,9 +177,8 @@ RAILWAY_BACKEND_URL=https://your-backend.up.railway.app
 
 Important note for auth:
 
-- Production auth should use same-origin `/api` calls through Vercel so session cookies stay first-party
-- `CORS_ORIGIN` must still exactly match your deployed frontend origin for direct backend checks and non-proxied access
-- The frontend keeps calling the API with `credentials: include`, which is already implemented in this repo
+- `CORS_ORIGIN` must exactly match your deployed frontend origin
+- The frontend now authenticates with a bearer session token instead of relying on cross-site cookies
 
 ## Shopify setup
 

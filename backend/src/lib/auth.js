@@ -69,6 +69,16 @@ export function getSessionTokenFromRequest(req, cookieName) {
   return cookies[cookieName] || null;
 }
 
+export function getBearerTokenFromRequest(req) {
+  const authorization = req.headers.authorization || req.get?.('authorization') || '';
+
+  if (!authorization.toLowerCase().startsWith('bearer ')) {
+    return null;
+  }
+
+  return authorization.slice(7).trim() || null;
+}
+
 export function buildSessionCookieOptions(config) {
   const isProduction = config.nodeEnv === 'production';
   return {

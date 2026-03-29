@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { getJson, postJson } from '../api.js';
+import { clearStoredSessionToken, getJson, getStoredSessionToken, postJson, setStoredSessionToken } from '../api.js';
 import { useToast } from '../toast/ToastProvider.jsx';
 
 const AuthContext = createContext(null);
@@ -15,6 +15,15 @@ export function AuthProvider({ children }) {
     let isActive = true;
 
     async function bootstrap() {
+      if (!getStoredSessionToken()) {
+        if (isActive) {
+          setUser(null);
+          setLoading(false);
+        }
+
+        return;
+      }
+
       try {
         const payload = await getJson('/auth/me', undefined, {
           suppressUnauthorizedEvent: true
@@ -43,6 +52,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     function handleUnauthorized() {
+      clearStoredSessionToken();
       setUser(null);
       setTransition(null);
 
@@ -74,6 +84,7 @@ export function AuthProvider({ children }) {
         suppressUnauthorizedEvent: true
       });
 
+      setStoredSessionToken(payload.sessionToken);
       setUser(payload.user);
       return payload.user;
     } catch (error) {
@@ -92,6 +103,7 @@ export function AuthProvider({ children }) {
       suppressUnauthorizedEvent: true
     }).catch(() => null);
 
+    clearStoredSessionToken();
     setUser(null);
     toast.info({
       title: 'Signed out',
